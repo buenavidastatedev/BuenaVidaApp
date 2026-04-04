@@ -1,8 +1,8 @@
-
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <h1>Buena Vida</h1>
+    <div>
+      <h1>Welcome to Buena Vida App!</h1>
+      <p>This is the home page.</p>
     </div>
   );
 }
