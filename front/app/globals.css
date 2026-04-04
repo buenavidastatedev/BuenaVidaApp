@@ -1,17 +1,34 @@
 @import "tailwindcss";
 
+/* =========================
+   VARIABLES BASE
+========================= */
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0f172a;
+
+  /* 🎯 COLOR PRINCIPAL (TU CAMBIO) */
+  --primary: #de1a4e;
+
+  /* ESCALA PRIMARY */
+  --primary-50: #fff1f5;
+  --primary-100: #ffe4ec;
+  --primary-200: #fecdd8;
+  --primary-300: #fda4b8;
+  --primary-400: #fb718f;
+  --primary-500: #f43f5e;
+  --primary-600: #de1a4e; /* base */
+  --primary-700: #be123c;
+  --primary-800: #9f1239;
+  --primary-900: #881337;
+
+  --surface: #f8fafc;
+  --on-surface: #0f172a;
+  --secondary: #d81e6f;
+  --outline: #e2e8f0;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
+/* DARK MODE */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
@@ -19,8 +36,69 @@
   }
 }
 
+/* =========================
+   TAILWIND THEME INLINE
+========================= */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-50: var(--primary-50);
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-300: var(--primary-300);
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  --color-primary-700: var(--primary-700);
+  --color-primary-800: var(--primary-800);
+  --color-primary-900: var(--primary-900);
+
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  --color-secondary: var(--secondary);
+  --color-outline: var(--outline);
+
+  --font-sans: "Inter", sans-serif;
+}
+
+/* =========================
+   BASE STYLES
+========================= */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "montserrat-semibold", sans-serif;
+}
+
+/* =========================
+   MATERIAL ICONS
+========================= */
+.material-symbols-outlined {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 400,
+    "GRAD" 0,
+    "opsz" 24;
+}
+
+/* =========================
+   SCROLLBAR
+========================= */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
