@@ -3,11 +3,17 @@
 import { useEffect, useState } from "react";
 
 export default function Header() {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const update = () => {
       setTime(new Date());
+    };
+
+    update();
+
+    const interval = setInterval(() => {
+      update();
     }, 1000);
 
     return () => clearInterval(interval);
@@ -40,22 +46,26 @@ export default function Header() {
             calendar_today
           </span>
 
-          <span>
-            {time.toLocaleDateString("es-AR", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })}
-          </span>
+          {time && (
+            <>
+              <span>
+                {time.toLocaleDateString("es-AR", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </span>
 
-          <span className="text-slate-400">|</span>
+              <span className="text-slate-400">|</span>
 
-          <span>
-            {time.toLocaleTimeString("es-AR", {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
+              <span>
+                {time.toLocaleTimeString("es-AR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </>
+          )}
         </div>
 
         <button className="w-10 h-10 rounded-full flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors">

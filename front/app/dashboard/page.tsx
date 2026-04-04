@@ -5,7 +5,7 @@ import TransactionsTable from "@/components/dashboard/TransactionsTables";
 export default function DashboardPage() {
   return (
     <>
-      <section className="relative z-10 max-w-7xl mx-auto space-y-4 mb-10">
+      <section className="space-y-4 mb-10">
         <h2 className="text-3xl md:text-4xl font-extrabold text-primary tracking-tight">
           Panel Administrativo
         </h2>
@@ -15,7 +15,6 @@ export default function DashboardPage() {
           conciliación fiscal y las métricas de rendimiento de los almacenes
         </p>
       </section>
-
       <Metrics />
       <WarehouseSection />
       <TransactionsTable />
