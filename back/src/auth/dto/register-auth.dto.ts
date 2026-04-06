@@ -8,7 +8,7 @@ import {
   MaxLength,
   MinLength,
 } from 'class-validator';
-import { UserRole } from 'src/users/enums/user.enum';
+import { UserRole } from '../../users/enums/user.enum'; 
 
 export class RegisterAuthDto {
   @IsEmail({}, { message: 'El email no es válido' })
