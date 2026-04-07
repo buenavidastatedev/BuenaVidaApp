@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function Footer() {
   return (
     <footer className="w-full h-36 bg-background border-slate-600">
-      <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-6">
+      <div className="max-w-7xl mx-auto w-full h-full flex items-center justify-between px-6">
         {/* LOGO + NOMBRE */}
         <div className="flex items-center gap-2">
           <Image
