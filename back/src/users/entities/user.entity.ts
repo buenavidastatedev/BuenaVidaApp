@@ -3,10 +3,13 @@ import {
   CreateDateColumn,
   Entity,
   Index,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { OAuthProvider, UserRole } from '../enums/user.enum';
+import { Seller } from '../../sellers/entities/seller.entity';
+import { Client } from '../../clients/entities/client.entity';
 
 @Entity('users')
 export class User {
@@ -56,4 +59,14 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToOne(() => Seller, (seller) => seller.user)
+seller: Seller;
+
+
+@OneToOne(() => Client, (client) => client.user)
+client: Client;
+
+
+
 }
