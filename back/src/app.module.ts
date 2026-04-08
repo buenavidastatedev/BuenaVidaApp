@@ -17,6 +17,8 @@ import { OrdersModule } from './orders/orders.module';
 import { OrderItemsModule } from './order-items/order-items.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { WineriesModule } from './wineries/wineries.module';
+
 
 @Module({
   imports: [
@@ -54,6 +56,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     OrderItemsModule,
     InvoicesModule,
     DashboardModule,
+    WineriesModule,
   ],
   controllers: [AppController],
   providers: [
