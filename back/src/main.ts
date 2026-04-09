@@ -4,10 +4,9 @@ import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
-
   const app = await NestFactory.create(AppModule);
 
-// Prefijo global para todas las rutas
+  // Prefijo global para todas las rutas
   app.setGlobalPrefix('api');
 
   // Validación automática de DTOs
@@ -19,7 +18,12 @@ async function bootstrap() {
     }),
   );
 
-    // Configuración Swagger
+  app.enableCors({
+    origin: 'http://localhost:3001', // tu front
+    credentials: true,
+  });
+
+  // Configuración Swagger
   const config = new DocumentBuilder()
     .setTitle('Buena Vida API')
     .setDescription('Sistema de pedidos mayoristas de vinos')
@@ -31,7 +35,6 @@ async function bootstrap() {
 
   SwaggerModule.setup('docs', app, document);
 
-
-    await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3003);
 }
 bootstrap();
