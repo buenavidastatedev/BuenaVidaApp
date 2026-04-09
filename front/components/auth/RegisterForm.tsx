@@ -48,7 +48,7 @@ export default function RegisterForm() {
     const lastname = rest.join(" ") || "User";
 
     try {
-      const res = await fetch("http://localhost:3000/auth/register", {
+      const res = await fetch("http://localhost:3003/api/auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -176,9 +176,9 @@ export default function RegisterForm() {
           <div className="grid grid-cols-2 gap-2">
             {[
               { value: "admin", label: "Admin" },
-              { value: "bodega", label: "Bodega" },
-              { value: "distribuidor", label: "Distribuidor" },
-              { value: "cliente", label: "Cliente" },
+              { value: "cellar_manager", label: "Bodega" },
+              { value: "seller", label: "Distribuidor" },
+              { value: "client", label: "Cliente" },
             ].map((r) => (
               <button
                 key={r.value}
