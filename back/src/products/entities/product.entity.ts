@@ -5,9 +5,13 @@ import {
     OneToMany,
     CreateDateColumn,
     UpdateDateColumn,
+    ManyToOne,
+    JoinColumn,
 } from 'typeorm';
 
 import { OrderItem } from '../../order-items/entities/order-item.entity';
+import { Winery } from '../../wineries/entities/winery.entity';
+
 
 @Entity('products')
 
@@ -19,8 +23,12 @@ export class Product {
     @Column({ type: 'varchar', length: 150 })
     name: string;
 
-    @Column({ type: 'varchar', length: 150 })
-    winery: string;
+    @ManyToOne(() => Winery, (winery) => winery.products, {
+        nullable: false,
+        onDelete: 'RESTRICT',
+    })
+    @JoinColumn({ name: 'wineryId' })
+    winery: Winery;
 
     @Column({ type: 'numeric', precision: 10, scale: 2 })
     price: number;
@@ -28,9 +36,6 @@ export class Product {
     @Column({ type: 'int', default: 0 })
     stock: number;
 
-    /**
-     * Relación con items de pedidos
-     */
     @OneToMany(() => OrderItem, (orderItem) => orderItem.product)
     orderItems: OrderItem[];
 
