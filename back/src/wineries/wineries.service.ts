@@ -1,26 +1,76 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+
+import { Winery } from './entities/winery.entity';
 import { CreateWineryDto } from './dto/create-winery.dto';
 import { UpdateWineryDto } from './dto/update-winery.dto';
 
 @Injectable()
 export class WineriesService {
-  create(createWineryDto: CreateWineryDto) {
-    return 'This action adds a new winery';
+  constructor(
+    @InjectRepository(Winery)
+    private readonly wineryRepository: Repository<Winery>,
+  ) {}
+
+  async create(createWineryDto: CreateWineryDto): Promise<Winery> {
+    const winery = this.wineryRepository.create(createWineryDto);
+    return await this.wineryRepository.save(winery);
   }
 
-  findAll() {
-    return `This action returns all wineries`;
+  async findAll(): Promise<Winery[]> {
+    return await this.wineryRepository.find({
+      relations: ['products'],
+      order: {
+        createdAt: 'DESC',
+      },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} winery`;
+  async findOne(id: string): Promise<Winery> {
+    const winery = await this.wineryRepository.findOne({
+      where: { id },
+      relations: ['products'],
+    });
+
+    if (!winery) {
+      throw new NotFoundException(`Winery with id ${id} not found`);
+    }
+
+    return winery;
   }
 
-  update(id: number, updateWineryDto: UpdateWineryDto) {
-    return `This action updates a #${id} winery`;
+  async update(
+    id: string,
+    updateWineryDto: UpdateWineryDto,
+  ): Promise<Winery> {
+    const winery = await this.findOne(id);
+
+    Object.assign(winery, updateWineryDto);
+
+    return await this.wineryRepository.save(winery);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} winery`;
+  async remove(id: string): Promise<{ message: string }> {
+    const winery = await this.findOne(id);
+
+    await this.wineryRepository.remove(winery);
+
+    return {
+      message: `Winery with id ${id} deleted successfully`,
+    };
+  }
+
+  async findProductsByWinery(id: string) {
+    const winery = await this.wineryRepository.findOne({
+      where: { id },
+      relations: ['products'],
+    });
+
+    if (!winery) {
+      throw new NotFoundException(`Winery with id ${id} not found`);
+    }
+
+    return winery.products;
   }
 }
