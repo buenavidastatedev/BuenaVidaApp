@@ -1,39 +1,56 @@
 @import "tailwindcss";
 
 /* =========================
-   VARIABLES BASE
+   VARIABLES BASE (MATCH HTML)
 ========================= */
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
+  --background: #f9f9ff;
+  --on-background: #181c22;
 
-  /* 🎯 COLOR PRINCIPAL (TU CAMBIO) */
-  --primary: #de1a4e;
+  --surface: #f9f9ff;
+  --surface-variant: #e0e2ec;
 
-  /* ESCALA PRIMARY */
-  --primary-50: #fff1f5;
-  --primary-100: #ffe4ec;
-  --primary-200: #fecdd8;
-  --primary-300: #fda4b8;
-  --primary-400: #fb718f;
-  --primary-500: #f43f5e;
-  --primary-600: #de1a4e; /* base */
-  --primary-700: #be123c;
-  --primary-800: #9f1239;
-  --primary-900: #881337;
+  --primary: #b50061;
+  --on-primary: #ffffff;
+  --primary-container: #e2007a;
 
-  --surface: #f8fafc;
-  --on-surface: #0f172a;
-  --secondary: #d81e6f;
-  --outline: #e2e8f0;
+  --secondary: #5e5e5e;
+  --on-secondary: #ffffff;
+
+  --outline: #717785;
+  --outline-variant: #c1c6d5;
+
+  --surface-container: #ecedf7;
+  --surface-container-low: #f2f3fd;
+  --surface-container-high: #e6e8f1;
+
+  --surface-container-highest: #e0e2ec;
+
+  --error: #ba1a1a;
 }
 
-/* DARK MODE */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* =========================
+   DARK MODE (CLASS BASED)
+========================= */
+.dark {
+  --background: #0a0a0a;
+  --on-background: #ededed;
+
+  --surface: #000000;
+  --surface-variant: #2d3038;
+
+  --primary: #ffb1c8;
+  --on-primary: #3e001d;
+
+  --secondary: #242424;
+  --on-secondary: #1b1b1b;
+
+  --outline: #8f96a3;
+  --outline-variant: #414753;
+
+  --surface-container: #1a1c22;
+  --surface-container-low: #14161c;
+  --surface-container-high: #23262e;
 }
 
 /* =========================
@@ -41,24 +58,27 @@
 ========================= */
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-
-  --color-primary: var(--primary);
-  --color-primary-50: var(--primary-50);
-  --color-primary-100: var(--primary-100);
-  --color-primary-200: var(--primary-200);
-  --color-primary-300: var(--primary-300);
-  --color-primary-400: var(--primary-400);
-  --color-primary-500: var(--primary-500);
-  --color-primary-600: var(--primary-600);
-  --color-primary-700: var(--primary-700);
-  --color-primary-800: var(--primary-800);
-  --color-primary-900: var(--primary-900);
+  --color-on-background: var(--on-background);
 
   --color-surface: var(--surface);
-  --color-on-surface: var(--on-surface);
+  --color-surface-variant: var(--surface-variant);
+
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+
   --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+
   --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+
+  --color-error: var(--error);
 
   --font-sans: "Inter", sans-serif;
 }
@@ -68,12 +88,13 @@
 ========================= */
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: "montserrat-semibold", sans-serif;
+  color: var(--on-background);
+  font-family: "Inter", sans-serif;
+  min-height: 100dvh;
 }
 
 /* =========================
-   MATERIAL ICONS
+   MATERIAL ICONS (FIX TS ERROR)
 ========================= */
 .material-symbols-outlined {
   font-variation-settings:
@@ -101,4 +122,12 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+.fill-icon {
+  font-variation-settings: "FILL" 1;
+}
+
+nextjs-portal {
+  display: none !important;
 }
