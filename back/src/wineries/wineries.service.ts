@@ -5,12 +5,14 @@ import { Repository } from 'typeorm';
 import { Winery } from './entities/winery.entity';
 import { CreateWineryDto } from './dto/create-winery.dto';
 import { UpdateWineryDto } from './dto/update-winery.dto';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Injectable()
 export class WineriesService {
   constructor(
     @InjectRepository(Winery)
     private readonly wineryRepository: Repository<Winery>,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   async create(createWineryDto: CreateWineryDto): Promise<Winery> {
@@ -73,4 +75,15 @@ export class WineriesService {
 
     return winery.products;
   }
+
+
+  async uploadImage(id: string, file: Express.Multer.File): Promise<Winery> {
+  const winery = await this.findOne(id);
+
+  const result = await this.cloudinaryService.uploadImage(file, 'wineries');
+
+  winery.imageUrl = result.secure_url;
+
+  return await this.wineryRepository.save(winery);
+}
 }

@@ -44,4 +44,7 @@ export class Product {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @Column({ type: 'varchar', nullable: true })
+imageUrl: string | null;
 }

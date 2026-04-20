@@ -16,7 +16,7 @@ import { Product } from '../../products/entities/product.entity';
 export class OrderItem {
 
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    id!: string;
 
     /**
      * Pedido al que pertenece el item
@@ -26,7 +26,7 @@ export class OrderItem {
         onDelete: 'CASCADE',
     })
     @JoinColumn({ name: 'orderId' })
-    order: Order;
+    order!: Order;
 
     /**
      * Producto asociado al item
@@ -36,24 +36,24 @@ export class OrderItem {
         onDelete: 'RESTRICT',
     })
     @JoinColumn({ name: 'productId' })
-    product: Product;
+    product!: Product;
 
     /**
      * Cantidad pedida
      */
     @Column({ type: 'int' })
-    quantity: number;
+    quantity!: number;
 
     /**
      * Precio unitario al momento del pedido
      * Se guarda acá para no depender del precio actual del producto
      */
     @Column({ type: 'numeric', precision: 10, scale: 2 })
-    price: number;
+    price!: number;
 
     @CreateDateColumn()
-    createdAt: Date;
+    createdAt!: Date;
 
     @UpdateDateColumn()
-    updatedAt: Date;
+    updatedAt!: Date;
 }
