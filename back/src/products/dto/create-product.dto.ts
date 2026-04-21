@@ -1,7 +1,17 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNumber, IsPositive, IsUUID, MaxLength, Min, IsString } from 'class-validator';
-export class CreateProductDto {
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+    IsInt,
+    IsNumber,
+    IsPositive,
+    IsUUID,
+    MaxLength,
+    Min,
+    IsString,
+    IsOptional,
+    IsUrl,
+} from 'class-validator';
 
+export class CreateProductDto {
     @ApiProperty({ example: 'Malbec Reserva' })
     @IsString()
     @MaxLength(150)
@@ -20,4 +30,10 @@ export class CreateProductDto {
     @IsInt()
     @Min(0)
     stock: number;
+
+    @ApiPropertyOptional({ example: 'https://res.cloudinary.com/demo/image/upload/sample.jpg' })
+    @IsOptional()
+    @IsString()
+    @IsUrl()
+    imageUrl?: string;
 }
