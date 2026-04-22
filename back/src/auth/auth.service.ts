@@ -51,22 +51,34 @@ export class AuthService {
   // ─── Register local ────────────────────────────────────
 
   async create(dto: RegisterAuthDto) {
-    const exists = await this.userRepo.findOne({ where: { email: dto.email } });
-    if (exists) throw new UnauthorizedException('El email ya está registrado');
+    const exists = await this.userRepo.findOne({
+      where: { email: dto.email },
+    });
 
-    if (!dto.password) throw new UnauthorizedException('Contraseña requerida');
+    if (exists) {
+      throw new UnauthorizedException('El email ya existe');
+    }
 
     const hashed = await bcrypt.hash(dto.password, 10);
+
     const user = this.userRepo.create({
-      ...dto,
+      email: dto.email,
+      firstname: dto.firstname,
       password: hashed,
+      role: dto.role,
       provider: OAuthProvider.LOCAL,
     });
 
     await this.userRepo.save(user);
+
     const tokens = this.generateTokens(user);
+
     await this.saveRefreshToken(user.id, tokens.refreshToken);
-    return tokens;
+
+    return {
+      ...tokens,
+      user,
+    };
   }
 
   // ─── Login local ───────────────────────────────────────
@@ -83,7 +95,6 @@ export class AuthService {
         'provider',
         'refreshToken',
         'firstname',
-        'lastname',
         'avatarUrl',
         'providerId',
         'createdAt',
@@ -102,7 +113,7 @@ export class AuthService {
 
     const tokens = this.generateTokens(user);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
-    return tokens;
+    return { ...tokens, user };
   }
 
   // ─── Google OAuth ──────────────────────────────────────
@@ -127,7 +138,6 @@ export class AuthService {
       user = this.userRepo.create({
         email: profile.email,
         firstname: profile.firstname,
-        lastname: profile.lastname,
         avatarUrl: profile.avatarUrl,
         providerId: profile.providerId,
         provider: OAuthProvider.GOOGLE,

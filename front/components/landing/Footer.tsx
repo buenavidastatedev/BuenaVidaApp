@@ -2,17 +2,16 @@ import Image from "next/image";
 
 export default function Footer() {
   return (
-    <footer className="w-full py-12 px-8 flex flex-col md:flex-row justify-between items-center gap-6 bg-black dark:bg-zinc-950 border-t border-zinc-800">
-      <div className="flex flex-col items-center md:items-start gap-4">
-        <div className="flex items-center gap-2">
-          <Image
-            src="/buenavida.png"
-            alt="Buena Vida Logo"
-            width={100}
-            height={100}
-            className="object-contain"
-          />
-        </div>
+    <footer className="w-full py-6 px-8 flex flex-col md:flex-row justify-between items-center gap-6 bg-black dark:bg-zinc-950 border-t border-zinc-800">
+      <div className="flex items-center gap-4">
+        <Image
+          src="/buenavida.png"
+          alt="Buena Vida Logo"
+          width={90}
+          height={90}
+          className="object-contain"
+        />
+
         <p className="font-inter text-xs uppercase tracking-widest text-gray-400">
           © 2026 Buena Vida S.A. Representante comercial Exclusivo
         </p>

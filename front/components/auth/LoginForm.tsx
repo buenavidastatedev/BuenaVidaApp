@@ -1,182 +1,187 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { loginRequest } from "@/lib/api";
 
 export default function LoginForm() {
-  const [show, setShow] = useState(false);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 👉 role que viene desde /login?role=seller etc
+  const selectedRole = searchParams.get("role");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+
+  const redirectByRole = (role: string) => {
+    switch (role) {
+      case "owner":
+        router.push("/dashboard/owner");
+        break;
+
+      case "seller":
+        router.push("/dashboard/seller");
+        break;
+
+      case "winery":
+        router.push("/dashboard/winery");
+        break;
+
+      case "client":
+        router.push("/dashboard/client");
+        break;
+
+      default:
+        router.push("/");
+    }
+  };
+
+  // 👉 LOGIN
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+
+      const data = await loginRequest({ email, password });
+
+      // guardar tokens
+      if (remember) {
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
+      } else {
+        sessionStorage.setItem("accessToken", data.accessToken);
+        sessionStorage.setItem("refreshToken", data.refreshToken);
+      }
+
+      const backendRole = data.user.role;
+
+      // 👉 validar si intenta entrar con otro perfil
+      if (selectedRole && selectedRole !== backendRole) {
+        alert("Este usuario no pertenece al perfil seleccionado.");
+        setLoading(false);
+        return;
+      }
+
+      redirectByRole(backendRole);
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("Ocurrió un error inesperado");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="max-w-md mx-auto w-full">
-      {/* Identity Anchor */}
-      <div className="flex flex-col items-center lg:items-start mb-10">
-        <div className="flex items-center justify-center gap-3 px-2 mb-8 w-full">
-          <Image
-            src="/buenavida.png"
-            alt="VintageFlow Logo"
-            width={250}
-            height={250}
-            className="object-contain"
+    <div className="bg-surface-container-lowest border border-outline-variant/30 shadow-xl rounded-xl p-8 backdrop-blur-sm">
+      <form className="space-y-6" onSubmit={handleSubmit}>
+        {/* PERFIL */}
+        {selectedRole && (
+          <div className="bg-primary/10 text-primary text-sm font-bold px-4 py-3 rounded-lg">
+            Perfil seleccionado: {selectedRole.toUpperCase()}
+          </div>
+        )}
+
+        {/* EMAIL */}
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2">
+            Email Corporativo
+          </label>
+
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full px-4 py-3 border rounded-lg"
+            placeholder="nombre@empresa.com"
           />
         </div>
 
-        <h1 className="text-3xl md:text-4xl font-extrabold text-primary tracking-tight">
-          Bienvenido de nuevo
-        </h1>
+        {/* PASSWORD */}
+        <div>
+          <label className="block text-xs font-bold uppercase tracking-wider mb-2">
+            Contraseña
+          </label>
 
-        <p className="text-sm text-[#000] font-medium">
-          Ingresa tus credenciales para acceder al sistema
-        </p>
-      </div>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-3 border rounded-lg pr-12"
+              placeholder="••••••••"
+            />
 
-      {/* FORM */}
-      <div style={{ pointerEvents: "none" }}>
-        <form
-          className="space-y-6"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            setLoading(true);
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3"
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </button>
+          </div>
+        </div>
 
-            try {
-              const res = await fetch("http://localhost:3003/api/auth/login", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  email,
-                  password,
-                }),
-              });
+        {/* REMEMBER */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => setRemember(e.target.checked)}
+          />
+          <span className="text-sm">Recordar sesión</span>
+        </div>
 
-              if (!res.ok) throw new Error("Error al iniciar sesión");
-
-              const data = await res.json();
-
-              localStorage.setItem("accessToken", data.accessToken);
-              localStorage.setItem("refreshToken", data.refreshToken);
-
-              window.location.href = "/admin";
-            } catch (error) {
-              console.error(error);
-              alert("Credenciales incorrectas");
-            } finally {
-              setLoading(false);
-            }
-          }}
+        {/* LOGIN */}
+        <button
+          disabled={loading}
+          className="w-full bg-primary text-white py-3 rounded-lg font-bold"
         >
-          {/* EMAIL */}
-          <div className="space-y-2">
-            <label className="block text-sm text-[#de1a4e] font-semibold text-on-surface-variant">
-              Correo electrónico
-            </label>
+          {loading ? "Ingresando..." : "Ingresar"}
+        </button>
 
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">
-                mail
-              </span>
+        {/* GOOGLE */}
+        <button
+          type="button"
+          disabled={loadingGoogle}
+          onClick={() => {
+            setLoadingGoogle(true);
+            window.location.assign(
+              `http://localhost:3003/api/auth/google${
+                selectedRole ? `?role=${selectedRole}` : ""
+              }`,
+            );
+          }}
+          className="w-full border py-3 rounded-lg font-medium"
+        >
+          {loadingGoogle ? "Redirigiendo..." : "Continuar con Google"}
+        </button>
+      </form>
 
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring[#de1a4e] focus:border-transparent outline-none transition-all placeholder:text-outline/60 text-on-surface"
-                placeholder="ejemplo@correo.com"
-                type="email"
-              />
-            </div>
-          </div>
-
-          {/* PASSWORD */}
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <label className="block text-sm text-[#de1a4e] font-semibold text-on-surface-variant">
-                Contraseña
-              </label>
-
-              <a className="text-sm font-medium text-[#000] hover:text-pink-700 transition-colors">
-                ¿Olvidaste tu contraseña?
-              </a>
-            </div>
-
-            <div className="relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">
-                lock
-              </span>
-
-              <input
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                type={show ? "text" : "password"}
-                placeholder="********"
-                className="w-full pl-10 pr-12 py-3 bg-surface-container-low border border-outline-variant rounded-lg focus:ring-2 focus:ring-[#1978e5] focus:border-transparent outline-none transition-all placeholder:text-outline/60 text-on-surface"
-              />
-
-              <button
-                type="button"
-                onClick={() => setShow(!show)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface transition-colors p-1"
-              >
-                <span className="material-symbols-outlined">visibility</span>
-              </button>
-            </div>
-          </div>
-
-          {/* CHECK */}
-          <div className="flex items-center gap-2 py-2">
-            <input className="w-4 h-4 text-[#de1a4e]" type="checkbox" />
-            <label className="text-sm text-[#000] text-on-surface-variant">
-              Recordar mi sesión
-            </label>
-          </div>
-
-          {/* BUTTON */}
+      {/* REGISTER */}
+      <div className="mt-8 pt-6 border-t">
+        <p className="text-center text-sm">
+          ¿No tienes una cuenta?{" "}
           <button
-            disabled={loading}
-            className="w-full bg-[#de1a4e] hover:bg-pink-700 active:scale-[0.98] text-white font-bold py-4 rounded-lg shadow-lg shadow-[#de1a4e]/20 transition-all duration-200 flex items-center justify-center gap-2 text-lg"
-            type="submit"
+            onClick={() =>
+              router.push(
+                selectedRole ? `/register?role=${selectedRole}` : "/register",
+              )
+            }
+            className="font-bold text-primary"
           >
-            {loading ? "Cargando..." : "Iniciar Sesión"}
-            <span className="material-symbols-outlined">login</span>
+            Registrate
           </button>
-
-          {/* Divider */}
-          <div className="relative flex items-center gap-4 py-2">
-            <div className="flex-grow border-t border-outline-variant/50"></div>
-            <span className="block text-sm text-[#de1a4e] font-semibold text-on-surface-variant">
-              O continuar con
-            </span>
-            <div className="flex-grow border-t border-outline-variant/50"></div>
-          </div>
-
-          {/* Google */}
-          <button
-            type="button"
-            onClick={() => {
-              console.log("CLICK GOOGLE");
-              window.location.href = "http://localhost:3003/api/auth/google";
-            }}
-            style={{
-              position: "relative",
-              zIndex: 9999,
-              pointerEvents: "auto",
-            }}
-            className="w-full hover:bg-slate-50 border border-outline-variant active:scale-[0.98] text-on-surface text-[#de1a4e] font-semibold py-3 rounded-lg transition-all duration-200 flex items-center justify-center gap-3"
-          >
-            Continuar con Google
-          </button>
-        </form>
-      </div>
-      {/* Footer */}
-      <div className="mt-8 pt-8 border-t border-outline-variant/30 text-center">
-        <p className="text-on-surface-variant text-sm text-[#000]">
-          ¿No tienes una cuenta? <br />
-          <a className="font-bold text-[#de1a4e] hover:underline">
-            Registrate!
-          </a>
         </p>
       </div>
     </div>

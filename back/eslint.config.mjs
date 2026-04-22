@@ -22,9 +22,6 @@ export default tseslint.config(
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
-      compilerOptions: {
-        strictPropertyInitialization: false,
-      },
     },
   },
 

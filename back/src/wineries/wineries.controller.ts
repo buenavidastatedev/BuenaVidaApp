@@ -37,10 +37,7 @@ export class WineriesController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateWineryDto: UpdateWineryDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateWineryDto: UpdateWineryDto) {
     return this.wineriesService.update(id, updateWineryDto);
   }
 

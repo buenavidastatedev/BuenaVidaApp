@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Montserrat } from "next/font/google";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -13,14 +14,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="es" className="light">
       <head>
         <link
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&display=optional"
           rel="stylesheet"
         />
       </head>
-      <body>{children}</body>
+
+      <body className={montserrat.variable}>
+        <GoogleOAuthProvider clientId="TU_GOOGLE_CLIENT_ID">
+          {children}
+        </GoogleOAuthProvider>
+      </body>
     </html>
   );
 }
