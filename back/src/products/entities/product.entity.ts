@@ -26,6 +26,9 @@ export class Product {
   @Column({ type: 'numeric', precision: 10, scale: 2 })
   price!: number;
 
+    @Column({ type: 'varchar', nullable: true })
+  imageUrl!: string | null;
+  
   @OneToMany(() => Stock, (stock) => stock.product)
   stocks!: Stock[];
 
