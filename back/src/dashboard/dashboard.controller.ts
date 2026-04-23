@@ -17,8 +17,23 @@ export class DashboardController {
     return this.dashboardService.getLowStock();
   }
 
-  @Get('top-products')
-  getTopProducts() {
-    return this.dashboardService.getTopProducts();
+  @Get('alerts')
+  getAlerts() {
+    return this.dashboardService.getAlerts();
+  }
+
+  @Get('settlements')
+  getSettlements() {
+    return this.dashboardService.getWinerySettlements();
+  }
+
+  @Get('top-clients')
+  getTopClients() {
+    return this.dashboardService.getTopClients();
+  }
+
+  @Get('sellers')
+  getSellers() {
+    return this.dashboardService.getSellerPerformance();
   }
 }

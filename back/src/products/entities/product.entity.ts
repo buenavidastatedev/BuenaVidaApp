@@ -6,7 +6,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
-  JoinColumn,
 } from 'typeorm';
 
 import { OrderItem } from '../../order-items/entities/order-item.entity';
@@ -21,11 +20,7 @@ export class Product {
   @Column({ type: 'varchar', length: 150 })
   name!: string;
 
-  @ManyToOne(() => Winery, (winery) => winery.products, {
-    nullable: false,
-    onDelete: 'RESTRICT',
-  })
-  @JoinColumn({ name: 'wineryId' })
+  @ManyToOne(() => Winery, (winery) => winery.products)
   winery!: Winery;
 
   @Column({ type: 'numeric', precision: 10, scale: 2 })

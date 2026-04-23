@@ -15,6 +15,7 @@ import { Seller } from '../../sellers/entities/seller.entity';
 import { OrderItem } from '../../order-items/entities/order-item.entity';
 import { Invoice } from '../../invoices/entities/invoice.entity';
 import { OrderStatus } from '../../common/decorators/guards/filters/interceptors/enums/order-status.enum';
+import { Winery } from 'src/wineries/entities/winery.entity';
 
 @Entity('orders')
 export class Order {
@@ -54,6 +55,10 @@ export class Order {
     nullable: true,
   })
   invoice!: Invoice;
+
+  @ManyToOne(() => Winery, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'wineryId' })
+  winery!: Winery | null;
 
   @CreateDateColumn()
   createdAt!: Date;
