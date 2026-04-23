@@ -35,7 +35,7 @@ export class OrderItemsController {
     @Param('id') id: string,
     @Body() updateOrderItemDto: UpdateOrderItemDto,
   ) {
-    return this.orderItemsService.update(+id, updateOrderItemDto);
+    return this.orderItemsService.update(id, updateOrderItemDto);
   }
 
   @Delete(':id')
