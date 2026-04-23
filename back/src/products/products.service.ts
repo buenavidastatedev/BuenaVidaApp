@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Express } from 'express';
 
 import { Product } from './entities/product.entity';
 import { Winery } from '../wineries/entities/winery.entity';
@@ -41,7 +42,7 @@ export class ProductsService {
 
   async findAll(): Promise<Product[]> {
     return await this.productRepository.find({
-      relations: ['winery'],
+      relations: ['winery', 'stocks'],
       order: {
         createdAt: 'DESC',
       },
@@ -51,7 +52,7 @@ export class ProductsService {
   async findOne(id: string): Promise<Product> {
     const product = await this.productRepository.findOne({
       where: { id },
-      relations: ['winery'],
+      relations: ['winery', 'stocks'],
     });
 
     if (!product) {
@@ -84,10 +85,6 @@ export class ProductsService {
 
     if (updateProductDto.price !== undefined) {
       product.price = updateProductDto.price;
-    }
-
-    if (updateProductDto.stock !== undefined) {
-      product.stock = updateProductDto.stock;
     }
 
     if (updateProductDto.imageUrl !== undefined) {
