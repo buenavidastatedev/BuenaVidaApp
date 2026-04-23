@@ -1,4 +1,3 @@
-import Footer from "@/components/layout/Footer";
 import AlertBanner from "./sections/WineryAlertBanner";
 import HeaderSection from "./sections/WineryHeaderSection";
 import OrdersCard from "./sections/WineryOrdersCards";
