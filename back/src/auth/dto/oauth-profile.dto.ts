@@ -4,19 +4,19 @@ export class OAuthProfile {
   // el sub que envia google
   @IsString()
   @IsNotEmpty()
-  providerId: string;
+  providerId!: string;
 
   @IsEmail()
-  email: string;
+  email!: string;
 
   @IsOptional()
   @IsString()
-  firstname: string;
+  firstname!: string;
 
   @IsOptional()
   @IsString()
-  avatarUrl: string;
+  avatarUrl!: string;
 
   @IsString()
-  provider: string;
+  provider!: string;
 }

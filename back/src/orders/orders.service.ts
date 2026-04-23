@@ -17,6 +17,7 @@ import { Stock } from '../stock/entities/stock.entity';
 import { StockService } from '../stock/stock.service';
 import { MovementType } from 'src/stock/enum/movement-type.enum';
 import { OrderStatus } from 'src/common/decorators/guards/filters/interceptors/enums/order-status.enum';
+import { Winery } from 'src/wineries/entities/winery.entity';
 
 @Injectable()
 export class OrdersService {
@@ -53,17 +54,36 @@ export class OrdersService {
       status: OrderStatus.PENDING,
     });
 
-    let total = 0;
+    let winery: Winery | null = null;
 
+    let total = 0;
     const items: OrderItem[] = [];
 
     for (const item of dto.items) {
       const product = await this.productRepo.findOne({
         where: { id: item.productId },
+        relations: ['winery'],
       });
 
       if (!product) {
         throw new NotFoundException(`Producto ${item.productId} no encontrado`);
+      }
+
+      if (!product.winery) {
+        throw new BadRequestException(
+          `El producto ${product.name} no tiene bodega asociada`,
+        );
+      }
+      // primera iteración define la bodega
+      if (!winery) {
+        winery = product.winery;
+      }
+
+      // validar que todos los productos sean de la misma bodega
+      if (winery && winery.id !== product.winery.id) {
+        throw new BadRequestException(
+          'No se pueden mezclar productos de distintas bodegas en una orden',
+        );
       }
 
       const stock = await this.stockRepo.findOne({
@@ -99,6 +119,7 @@ export class OrdersService {
 
     order.total = total;
     order.items = items;
+    order.winery = winery;
 
     return this.orderRepo.save(order);
   }
