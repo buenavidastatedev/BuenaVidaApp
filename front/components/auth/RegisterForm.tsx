@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type FormState = {
@@ -9,7 +10,8 @@ type FormState = {
 };
 
 export default function RegisterForm() {
-  const [role, setRole] = useState<string>("cliente");
+  const router = useRouter();
+  const [role, setRole] = useState<string>("");
   const [show, setShow] = useState<boolean>(false);
 
   const [form, setForm] = useState<FormState>({
@@ -30,11 +32,11 @@ export default function RegisterForm() {
 
   const mapRole = (role: string) => {
     switch (role) {
-      case "admin":
-        return "admin";
-      case "bodega":
-        return "cellar_manager";
-      case "distribuidor":
+      case "owner":
+        return "owner";
+      case "winery":
+        return "winery";
+      case "seller":
         return "seller";
       default:
         return "client";
@@ -44,8 +46,10 @@ export default function RegisterForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const [firstName, ...rest] = form.name.split(" ");
-    const lastname = rest.join(" ") || "User";
+    if (!role) {
+      alert("Seleccioná un rol");
+      return;
+    }
 
     try {
       const res = await fetch("http://localhost:3003/api/auth/register", {
@@ -55,10 +59,9 @@ export default function RegisterForm() {
         },
         body: JSON.stringify({
           email: form.email,
-          firstName,
-          lastname,
+          firstname: form.name,
           password: form.password,
-          role: mapRole(role),
+          role,
         }),
       });
 
@@ -66,15 +69,13 @@ export default function RegisterForm() {
 
       if (!res.ok) throw new Error(data.message);
 
-      // Guardar tokens
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
 
-      // Redirección simple (ajustás después por rol)
-      window.location.href = "/admin";
+      router.push(`/dashboard/${data.user.role}`);
     } catch (error: unknown) {
       if (error instanceof Error) {
-        alert(error.message || "Error al registrarse");
+        alert(error.message);
       } else {
         alert("Error al registrarse");
       }
@@ -82,68 +83,77 @@ export default function RegisterForm() {
   };
 
   return (
-    <section
-      className="bg-surface border border-outline-variant/30 rounded-xl p-8 shadow-sm bg-cover bg-center"
-      style={{ backgroundImage: "url('/imagenlogin.jpg')" }}
-    >
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-5 backdrop-blur-sm bg-white/80 p-6 rounded-xl"
-      >
-        {/* Nombre */}
-        <div className="flex flex-col gap-1.5">
-          <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider ml-1">
-            Nombre completo
-          </label>
-
-          <div className="relative group">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">
-              person
+    <div className="bg-white rounded-xl shadow-xl border border-zinc-100 p-8 md:p-10">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* PERSONAL */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 border-l-4 border-primary pl-3 mb-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-primary">
+              Información Personal
             </span>
+          </div>
 
-            <input
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              className="w-full pl-11 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg"
-              placeholder="John Doe"
-              type="text"
-              required
-            />
+          <div className="space-y-1">
+            <label className="block text-sm font-semibold text-zinc-700">
+              Nombre completo
+            </label>
+
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
+                person
+              </span>
+
+              <input
+                name="name"
+                value={form.name}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary outline-none"
+                placeholder="Ej. Juan Pérez"
+                required
+              />
+            </div>
           </div>
         </div>
 
-        {/* Email */}
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-on-surface-variant">
-            Correo electrónico
-          </label>
-
-          <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">
-              mail
+        {/* CONTACTO */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 border-l-4 border-zinc-400 pl-3 mb-2">
+            <span className="text-xs font-bold uppercase tracking-widest text-zinc-500">
+              Datos de Contacto
             </span>
+          </div>
 
-            <input
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full pl-10 pr-4 py-3 bg-surface-container-low border border-outline-variant rounded-lg"
-              placeholder="ejemplo@correo.com"
-              type="email"
-              required
-            />
+          <div className="space-y-1">
+            <label className="block text-sm font-semibold text-zinc-700">
+              Email
+            </label>
+
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
+                mail
+              </span>
+
+              <input
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={handleChange}
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary outline-none"
+                placeholder="email@empresa.com"
+                required
+              />
+            </div>
           </div>
         </div>
 
-        {/* Password */}
+        {/* PASSWORD */}
         <div className="space-y-2">
-          <label className="block text-sm font-semibold text-on-surface-variant">
+          <label className="block text-sm font-semibold text-zinc-700">
             Contraseña
           </label>
 
           <div className="relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-xl">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
               lock
             </span>
 
@@ -152,8 +162,8 @@ export default function RegisterForm() {
               value={form.password}
               onChange={handleChange}
               type={show ? "text" : "password"}
+              className="w-full pl-10 pr-12 py-2 rounded-lg border border-zinc-300 focus:ring-2 focus:ring-primary outline-none"
               placeholder="********"
-              className="w-full pl-10 pr-12 py-3 bg-surface-container-low border border-outline-variant rounded-lg"
               required
             />
 
@@ -162,33 +172,35 @@ export default function RegisterForm() {
               onClick={() => setShow(!show)}
               className="absolute right-3 top-1/2 -translate-y-1/2"
             >
-              <span className="material-symbols-outlined">visibility</span>
+              <span className="material-symbols-outlined">
+                {show ? "visibility_off" : "visibility"}
+              </span>
             </button>
           </div>
         </div>
 
         {/* ROLES */}
-        <div className="flex flex-col gap-2 mt-2">
-          <label className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider ml-1">
-            Tipo de cuenta
+        <div className="space-y-3">
+          <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            Tipo de Usuario
           </label>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {[
-              { value: "admin", label: "Admin" },
-              { value: "cellar_manager", label: "Bodega" },
-              { value: "seller", label: "Distribuidor" },
+              { value: "owner", label: "Propietario" },
+              { value: "winery", label: "Bodega" },
+              { value: "seller", label: "Vendedor" },
               { value: "client", label: "Cliente" },
             ].map((r) => (
               <button
                 key={r.value}
                 type="button"
                 onClick={() => setRole(r.value)}
-                className={`py-2 rounded-lg border text-sm font-medium
+                className={`p-3 border rounded-lg text-sm font-medium transition
                   ${
                     role === r.value
                       ? "bg-primary text-white border-primary"
-                      : "border-outline-variant text-on-surface-variant"
+                      : "border-zinc-300 hover:bg-zinc-50"
                   }`}
               >
                 {r.label}
@@ -197,14 +209,28 @@ export default function RegisterForm() {
           </div>
         </div>
 
-        {/* Button */}
+        {/* SUBMIT */}
         <button
-          className="w-full bg-primary-container text-on-primary-container font-bold py-4 rounded-lg"
           type="submit"
+          className="w-full bg-primary text-white font-bold py-4 rounded-lg hover:bg-primary-container transition-all flex items-center justify-center gap-2"
         >
-          Registrarse
+          Crear Cuenta
+          <span className="material-symbols-outlined">arrow_forward</span>
         </button>
+
+        {/* FOOTER */}
+        <div className="mt-8 pt-6 border-t border-outline-variant/30">
+          <p className="text-center text-sm text-on-surface-variant">
+            ¿Ya tienes cuenta?{" "}
+            <button
+              onClick={() => router.push("/login")}
+              className="font-bold text-primary hover:text-primary-container transition-colors"
+            >
+              Inicia sesión!
+            </button>
+          </p>
+        </div>
       </form>
-    </section>
+    </div>
   );
 }

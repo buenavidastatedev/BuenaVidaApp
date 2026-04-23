@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
@@ -29,11 +28,6 @@ export class OrdersController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.ordersService.findOne(id);
-  }
-
-  @Get(':id/items')
-  findItemsByOrder(@Param('id') id: string) {
-    return this.ordersService.findItemsByOrder(id);
   }
 
   @Patch(':id')

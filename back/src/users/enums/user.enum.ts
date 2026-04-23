@@ -1,8 +1,8 @@
 export enum UserRole {
-  ADMIN = 'admin',
+  OWNER = 'owner',
   CLIENT = 'client',
   SELLER = 'seller',
-  CELLAR_MANAGER = 'cellar_manager',
+  WINERY = 'winery',
 }
 
 export enum OAuthProvider {

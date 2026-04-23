@@ -40,10 +40,7 @@ export class WineriesController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateWineryDto: UpdateWineryDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateWineryDto: UpdateWineryDto) {
     return this.wineriesService.update(id, updateWineryDto);
   }
 
@@ -51,25 +48,4 @@ export class WineriesController {
   remove(@Param('id') id: string) {
     return this.wineriesService.remove(id);
   }
-
-  @Post(':id/image')
-@UseInterceptors(FileInterceptor('file'))
-@ApiConsumes('multipart/form-data')
-@ApiBody({
-  schema: {
-    type: 'object',
-    properties: {
-      file: {
-        type: 'string',
-        format: 'binary',
-      },
-    },
-  },
-})
-uploadImage(
-  @Param('id') id: string,
-  @UploadedFile() file: Express.Multer.File,
-) {
-  return this.wineriesService.uploadImage(id, file);
-}
 }

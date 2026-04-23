@@ -16,57 +16,50 @@ export class User {
   // UUID generado automáticamente — más seguro que un ID numérico
   // porque no se puede adivinar cuántos usuarios hay
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Index({ unique: true })
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   //nullable hace que el input pueda estar sin llenar, es decir, sea opcional
   @Column({ nullable: true })
-  firstname: string;
+  firstname!: string;
 
   @Column({ nullable: true })
-  lastname: string;
-
-  @Column({ nullable: true })
-  avatarUrl: string;
+  avatarUrl!: string;
 
   @Column({ nullable: true, select: false })
-  password: string;
+  password!: string;
 
   @Column({ type: 'enum', enum: UserRole, default: UserRole.CLIENT })
-  role: UserRole;
+  role!: UserRole;
 
   @Column({ type: 'enum', enum: OAuthProvider, default: OAuthProvider.LOCAL })
-  provider: OAuthProvider;
+  provider!: OAuthProvider;
 
   // El ID que nos devuelve Google cuando el usuario se loguea
   // Google llama a esto "sub" (subject)
   @Index()
   @Column({ nullable: true })
-  providerId: string;
+  providerId!: string;
 
   @Column({ nullable: true })
-  refreshToken: string;
+  refreshToken!: string;
   // Para poder desactivar un usuario sin borrarlo
   @Column({ default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   // TypeORM completa estas dos automáticamente
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @OneToOne(() => Seller, (seller) => seller.user)
-seller: Seller;
+  seller!: Seller;
 
-
-@OneToOne(() => Client, (client) => client.user)
-client: Client;
-
-
-
+  @OneToOne(() => Client, (client) => client.user)
+  client!: Client;
 }

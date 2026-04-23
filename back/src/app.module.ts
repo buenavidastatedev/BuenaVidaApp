@@ -18,7 +18,7 @@ import { OrderItemsModule } from './order-items/order-items.module';
 import { InvoicesModule } from './invoices/invoices.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { WineriesModule } from './wineries/wineries.module';
-
+import { StockModule } from './stock/stock.module';
 
 @Module({
   imports: [
@@ -42,6 +42,7 @@ import { WineriesModule } from './wineries/wineries.module';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: cfg.get<string>('NODE_ENV') === 'development',
         logging: cfg.get<string>('NODE_ENV') === 'development',
+        // dropSchema: cfg.get<string>('NODE_ENV') === 'development',
       }),
     }),
 
@@ -57,6 +58,7 @@ import { WineriesModule } from './wineries/wineries.module';
     InvoicesModule,
     DashboardModule,
     WineriesModule,
+    StockModule,
   ],
   controllers: [AppController],
   providers: [

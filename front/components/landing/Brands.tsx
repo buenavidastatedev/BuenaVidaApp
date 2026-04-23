@@ -7,7 +7,7 @@ const brands = [
   { name: "Albaflor", logo: "/Albaflor-negro.png" },
   { name: "El Tránsito", logo: "/El-Transito-negro.png" },
   { name: "Kalos Wines", logo: "/Logo-Kalos-845x684.jpg" },
-  { name: "Psicoanalista", logo: "/El-Psicoanalista-negro.png" },
+  { name: "Psicoanalista", logo: "/el-psicoanalista-porfolio.png" },
   { name: "Restinga Gin", logo: "/Restinga-negro.png" },
   { name: "Bira Wines", logo: "/Bira-negro.png" },
   { name: "Juana Larrea", logo: "/Juana-Larrea-negro.png" },
@@ -16,7 +16,10 @@ const brands = [
 
 export default function Brands() {
   return (
-    <section className="py-24 bg-white border-y border-outline-variant">
+    <section
+      id="marcas"
+      className="py-24 bg-white border-y border-outline-variant scroll-mt-20"
+    >
       {/* 🔥 MÁS ANCHO QUE max-w-7xl */}
       <div className="max-w-[1400px] mx-auto px-5">
         {/* Título */}

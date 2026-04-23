@@ -15,10 +15,6 @@ export class OAuthProfile {
 
   @IsOptional()
   @IsString()
-  lastname: string;
-
-  @IsOptional()
-  @IsString()
   avatarUrl: string;
 
   @IsString()

@@ -42,10 +42,7 @@ export class WineriesService {
     return winery;
   }
 
-  async update(
-    id: string,
-    updateWineryDto: UpdateWineryDto,
-  ): Promise<Winery> {
+  async update(id: string, updateWineryDto: UpdateWineryDto): Promise<Winery> {
     const winery = await this.findOne(id);
 
     Object.assign(winery, updateWineryDto);
@@ -75,15 +72,4 @@ export class WineriesService {
 
     return winery.products;
   }
-
-
-  async uploadImage(id: string, file: Express.Multer.File): Promise<Winery> {
-  const winery = await this.findOne(id);
-
-  const result = await this.cloudinaryService.uploadImage(file, 'wineries');
-
-  winery.imageUrl = result.secure_url;
-
-  return await this.wineryRepository.save(winery);
-}
 }

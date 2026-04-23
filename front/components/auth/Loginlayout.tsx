@@ -1,16 +1,18 @@
-import LoginImagePanel from "./LoginImagePanel";
+import LoginHeader from "./LoginHeader";
 import LoginForm from "./LoginForm";
+import Footer from "../layout/Footer";
 
 export default function LoginLayout() {
   return (
-    <main className="flex-grow flex items-center justify-center pt-24 pb-16 px-4">
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 bg-surface-container-lowest rounded-xl shadow-xl overflow-hidden border border-outline-variant/30">
-        <LoginImagePanel />
-
-        <div className="p-8 md:p-16 flex flex-col justify-center bg-white">
+    <div className="bg-surface h-full flex flex-col font-body">
+      <main className="flex-grow flex items-center justify-center relative overflow-hidden bg-blur-wine">
+        <div className="w-full max-w-md px-6 py-12 z-10">
+          <LoginHeader />
           <LoginForm />
         </div>
-      </div>
-    </main>
+      </main>
+
+      <Footer />
+    </div>
   );
 }

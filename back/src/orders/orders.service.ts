@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -6,166 +10,128 @@ import { Order } from './entities/order.entity';
 import { OrderItem } from '../order-items/entities/order-item.entity';
 import { Product } from '../products/entities/product.entity';
 import { Client } from '../clients/entities/client.entity';
-import { Seller } from '../sellers/entities/seller.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
+
+import { Stock } from '../stock/entities/stock.entity';
+import { StockService } from '../stock/stock.service';
+import { MovementType } from 'src/stock/enum/movement-type.enum';
+import { OrderStatus } from 'src/common/decorators/guards/filters/interceptors/enums/order-status.enum';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectRepository(Order)
-    private readonly orderRepository: Repository<Order>,
+    private readonly orderRepo: Repository<Order>,
 
     @InjectRepository(OrderItem)
-    private readonly orderItemRepository: Repository<OrderItem>,
+    private readonly orderItemRepo: Repository<OrderItem>,
 
     @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
+    private readonly productRepo: Repository<Product>,
 
     @InjectRepository(Client)
-    private readonly clientRepository: Repository<Client>,
+    private readonly clientRepo: Repository<Client>,
 
-    @InjectRepository(Seller)
-    private readonly sellerRepository: Repository<Seller>,
+    @InjectRepository(Stock)
+    private readonly stockRepo: Repository<Stock>,
+
+    private readonly stockService: StockService,
   ) {}
 
-  async create(createOrderDto: CreateOrderDto): Promise<Order> {
-    const { clientId, sellerId, items } = createOrderDto;
-
-    const client = await this.clientRepository.findOne({
-      where: { id: clientId },
+  async create(dto: CreateOrderDto) {
+    const client = await this.clientRepo.findOne({
+      where: { id: dto.clientId },
     });
 
     if (!client) {
-      throw new NotFoundException(`Client with id ${clientId} not found`);
+      throw new NotFoundException('Cliente no encontrado');
     }
 
-    let seller: Seller | null = null;
+    const order = this.orderRepo.create({
+      client,
+      status: OrderStatus.PENDING,
+    });
 
-    if (sellerId) {
-      seller = await this.sellerRepository.findOne({
-        where: { id: sellerId },
-      });
-
-      if (!seller) {
-        throw new NotFoundException(`Seller with id ${sellerId} not found`);
-      }
-    }
-
-    const orderItems: OrderItem[] = [];
     let total = 0;
 
-    for (const item of items) {
-      const product = await this.productRepository.findOne({
+    const items: OrderItem[] = [];
+
+    for (const item of dto.items) {
+      const product = await this.productRepo.findOne({
         where: { id: item.productId },
       });
 
       if (!product) {
-        throw new NotFoundException(
-          `Product with id ${item.productId} not found`,
+        throw new NotFoundException(`Producto ${item.productId} no encontrado`);
+      }
+
+      const stock = await this.stockRepo.findOne({
+        where: { product: { id: product.id } },
+        relations: ['product'],
+      });
+
+      if (!stock || stock.quantity < item.quantity) {
+        throw new BadRequestException(
+          `Stock insuficiente para ${product.name}`,
         );
       }
 
-      const orderItem = this.orderItemRepository.create({
+      // calcular total
+      total += Number(product.price) * item.quantity;
+
+      // mover stock
+      await this.stockService.moveStock(
+        stock.id,
+        item.quantity,
+        MovementType.OUT,
+        'Order',
+      );
+
+      const orderItem = this.orderItemRepo.create({
         product,
         quantity: item.quantity,
-        price: Number(product.price),
+        price: product.price,
       });
 
-      total += Number(product.price) * item.quantity;
-      orderItems.push(orderItem);
+      items.push(orderItem);
     }
 
-    const order = this.orderRepository.create({
-      client,
-      seller,
-      total,
-      items: orderItems,
-    });
+    order.total = total;
+    order.items = items;
 
-    return await this.orderRepository.save(order);
+    return this.orderRepo.save(order);
   }
 
-  async findAll(): Promise<Order[]> {
-    return await this.orderRepository.find({
-      relations: ['client', 'seller', 'items', 'items.product', 'invoice'],
-      order: {
-        createdAt: 'DESC',
-      },
+  async findAll() {
+    return this.orderRepo.find({
+      relations: ['client', 'items', 'items.product'],
     });
   }
 
-  async findOne(id: string): Promise<Order> {
-    const order = await this.orderRepository.findOne({
+  async findOne(id: string) {
+    const order = await this.orderRepo.findOne({
       where: { id },
-      relations: ['client', 'seller', 'items', 'items.product', 'invoice'],
+      relations: ['client', 'items', 'items.product'],
     });
 
     if (!order) {
-      throw new NotFoundException(`Order with id ${id} not found`);
+      throw new NotFoundException('Orden no encontrada');
     }
 
     return order;
   }
 
-  async update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
+  async update(id: string, dto: UpdateOrderDto) {
     const order = await this.findOne(id);
 
-    if (updateOrderDto.clientId) {
-      const client = await this.clientRepository.findOne({
-        where: { id: updateOrderDto.clientId },
-      });
+    Object.assign(order, dto);
 
-      if (!client) {
-        throw new NotFoundException(
-          `Client with id ${updateOrderDto.clientId} not found`,
-        );
-      }
-
-      order.client = client;
-    }
-
-    if (updateOrderDto.sellerId) {
-      const seller = await this.sellerRepository.findOne({
-        where: { id: updateOrderDto.sellerId },
-      });
-
-      if (!seller) {
-        throw new NotFoundException(
-          `Seller with id ${updateOrderDto.sellerId} not found`,
-        );
-      }
-
-      order.seller = seller;
-    }
-
-    if (updateOrderDto.status !== undefined) {
-      order.status = updateOrderDto.status;
-    }
-
-    return await this.orderRepository.save(order);
+    return this.orderRepo.save(order);
   }
 
-  async remove(id: string): Promise<{ message: string }> {
+  async remove(id: string) {
     const order = await this.findOne(id);
-
-    await this.orderRepository.remove(order);
-
-    return {
-      message: `Order with id ${id} deleted successfully`,
-    };
-  }
-
-  async findItemsByOrder(id: string): Promise<OrderItem[]> {
-    const order = await this.orderRepository.findOne({
-      where: { id },
-      relations: ['items', 'items.product'],
-    });
-
-    if (!order) {
-      throw new NotFoundException(`Order with id ${id} not found`);
-    }
-
-    return order.items;
+    return this.orderRepo.remove(order);
   }
 }

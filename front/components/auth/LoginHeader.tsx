@@ -1,35 +1,24 @@
-"use client";
+import Image from "next/image";
 
-import { useState } from "react";
-
-export default function Header() {
-  const [dark, setDark] = useState(() => {
-    if (typeof window !== "undefined") {
-      return document.documentElement.classList.contains("dark");
-    }
-    return false;
-  });
-
-  const toggleDarkMode = () => {
-    const html = document.documentElement;
-
-    if (html.classList.contains("dark")) {
-      html.classList.remove("dark");
-      setDark(false);
-    } else {
-      html.classList.add("dark");
-      setDark(true);
-    }
-  };
-
+export default function LoginHeader() {
   return (
-    <header className="fixed top-0 left-0 w-full z-50 flex justify-end items-center px-6 py-3 bg-white">
-      <button
-        onClick={toggleDarkMode}
-        className="material-symbols-outlined text-slate-500 hover:bg-slate-50 p-2 rounded-full transition-all"
-      >
-        {dark ? "dark_mode" : "light_mode"}
-      </button>
-    </header>
+    <div className="flex flex-col items-center mb-10">
+      <Image
+        src="/buenavida.png"
+        alt="Buena Vida Logo"
+        width={120}
+        height={120}
+        className="object-contain"
+      />
+
+      <div className="text-center">
+        <h1 className="text-2xl font-headline font-extrabold text-on-surface tracking-tight">
+          Acceso al Ecosistema
+        </h1>
+        <p className="text-on-surface-variant text-sm mt-1">
+          Plataforma de gestión vinícola profesional
+        </p>
+      </div>
+    </div>
   );
 }
