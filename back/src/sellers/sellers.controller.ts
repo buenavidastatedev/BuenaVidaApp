@@ -27,16 +27,16 @@ export class SellersController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.sellersService.findOne(+id);
+    return this.sellersService.findOne(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSellerDto: UpdateSellerDto) {
-    return this.sellersService.update(+id, updateSellerDto);
+    return this.sellersService.update(id, updateSellerDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.sellersService.remove(+id);
+    return this.sellersService.remove(id);
   }
 }

@@ -6,11 +6,14 @@ import {
   Patch,
   Param,
   Delete,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-
+import { FileInterceptor } from '@nestjs/platform-express';
 import { WineriesService } from './wineries.service';
 import { CreateWineryDto } from './dto/create-winery.dto';
 import { UpdateWineryDto } from './dto/update-winery.dto';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 
 @Controller('wineries')
 export class WineriesController {
