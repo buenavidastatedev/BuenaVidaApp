@@ -27,7 +27,7 @@ export class OrderItemsController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.orderItemsService.findOne(+id);
+    return this.orderItemsService.findOne(id);
   }
 
   @Patch(':id')
@@ -40,6 +40,6 @@ export class OrderItemsController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.orderItemsService.remove(+id);
+    return this.orderItemsService.remove(id);
   }
 }
