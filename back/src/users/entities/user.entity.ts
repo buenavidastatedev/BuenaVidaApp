@@ -26,7 +26,7 @@ export class User {
   @Column({ nullable: true })
   firstname!: string;
 
-    @Column({ nullable: true })
+  @Column({ nullable: true })
   lastname!: string;
 
   @Column({ nullable: true })
