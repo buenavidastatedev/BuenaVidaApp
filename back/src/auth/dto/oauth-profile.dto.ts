@@ -1,7 +1,6 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class OAuthProfile {
-  // el sub que envia google
   @IsString()
   @IsNotEmpty()
   providerId!: string;
@@ -11,11 +10,15 @@ export class OAuthProfile {
 
   @IsOptional()
   @IsString()
-  firstname!: string;
+  firstname?: string;
 
   @IsOptional()
   @IsString()
-  avatarUrl!: string;
+  lastname?: string;
+
+  @IsOptional()
+  @IsString()
+  avatarUrl?: string;
 
   @IsString()
   provider!: string;
