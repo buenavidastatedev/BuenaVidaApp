@@ -1,26 +1,23 @@
 const API_URL = "http://localhost:3003/api";
+
 const TOKEN_KEY = "accessToken";
 const REFRESH_KEY = "refreshToken";
 
 /* =========================
    AUTH
 ========================= */
+
 export async function loginRequest(data: { email: string; password: string }) {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
   const result = await res.json();
 
-  if (!res.ok) {
-    throw new Error(result.message || "Error en login");
-  }
+  if (!res.ok) throw new Error(result.message || "Error en login");
 
-  // 🔥 Guardar tokens correctamente
   if (typeof window !== "undefined") {
     localStorage.setItem(TOKEN_KEY, result.accessToken);
     localStorage.setItem(REFRESH_KEY, result.refreshToken);
@@ -30,15 +27,14 @@ export async function loginRequest(data: { email: string; password: string }) {
 }
 
 /* =========================
-   FETCH BASE (CLAVE)
+   BASE FETCH (FIXED)
 ========================= */
+
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token =
     typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
 
-  if (!token) {
-    throw new Error("No hay sesión activa");
-  }
+  if (!token) throw new Error("No hay sesión activa");
 
   let res = await fetch(url, {
     ...options,
@@ -50,8 +46,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     cache: "no-store",
   });
 
-  // 🔥 Manejo de token expirado
-  if (res.status === 401) {
+  if (res.status === 401 && typeof window !== "undefined") {
     const refreshToken = localStorage.getItem(REFRESH_KEY);
 
     if (!refreshToken) {
@@ -62,9 +57,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
     const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ refreshToken }),
     });
 
@@ -79,7 +72,6 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     localStorage.setItem(TOKEN_KEY, newTokens.accessToken);
     localStorage.setItem(REFRESH_KEY, newTokens.refreshToken);
 
-    // 🔁 retry request original
     res = await fetch(url, {
       ...options,
       headers: {
@@ -93,9 +85,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
   const result = await res.json();
 
-  if (!res.ok) {
-    throw new Error(result.message || "Error en request");
-  }
+  if (!res.ok) throw new Error(result.message || "Error en request");
 
   return result;
 }
@@ -103,6 +93,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 /* =========================
    TYPES
 ========================= */
+
 export type DashboardSummary = {
   totalSales: number;
   ordersCount: number;
@@ -112,17 +103,31 @@ export type DashboardSummary = {
   avgOrderValue: number;
 };
 
+export type SellerPerformance = {
+  name: string;
+  percentage: number;
+};
+
 /* =========================
    DASHBOARD
 ========================= */
-export async function getDashboardSummary() {
-  return fetchWithAuth(`${API_URL}/dashboard/summary`);
-}
 
-export async function getStockAlerts() {
-  return fetchWithAuth(`${API_URL}/dashboard/stock-alerts`);
-}
+export const getDashboardSummary = () =>
+  fetchWithAuth(`${API_URL}/dashboard/summary`);
 
-export async function getTopProducts() {
-  return fetchWithAuth(`${API_URL}/dashboard/top-products`);
-}
+export const getSellerPerformance = (): Promise<SellerPerformance[]> =>
+  fetchWithAuth(`${API_URL}/dashboard/sellers`);
+
+export const getSettlements = () =>
+  fetchWithAuth(`${API_URL}/dashboard/settlements`);
+
+export const getAlerts = () => fetchWithAuth(`${API_URL}/dashboard/alerts`);
+
+export const getTopClients = () =>
+  fetchWithAuth(`${API_URL}/dashboard/top-clients`);
+
+export const getStockAlerts = () =>
+  fetchWithAuth(`${API_URL}/dashboard/stock-alerts`);
+
+export const getTopProducts = () =>
+  fetchWithAuth(`${API_URL}/dashboard/top-products`);

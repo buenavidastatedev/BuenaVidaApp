@@ -1,46 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getDashboardSummary, DashboardSummary } from "@/lib/api";
+import { DashboardSummary } from "@/lib/api";
 
-export default function SummaryGrid() {
-  const [data, setData] = useState<DashboardSummary | null>(null);
-  const [loading, setLoading] = useState(true);
+type Props = {
+  data: DashboardSummary;
+};
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await getDashboardSummary();
-
-        if (!res) {
-          setData(null);
-          return;
-        }
-
-        setData(res);
-      } catch (error) {
-        console.error("Error cargando dashboard:", error);
-        setData(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="md:col-span-4 bg-white p-6 rounded-xl border animate-pulse h-40" />
-      </div>
-    );
-  }
-
-  if (!data) {
-    return <div className="text-red-500">Error cargando dashboard</div>;
-  }
-
+export default function SummaryGrid({ data }: Props) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {/* Ventas */}
@@ -56,11 +22,11 @@ export default function SummaryGrid() {
         </div>
 
         <div className="mt-4 text-sm text-gray-500">
-          Promedio por orden: ${data.avgOrderValue.toFixed(2)}
+          Promedio por orden: ${data.avgOrderValue?.toFixed(2) ?? "0.00"}
         </div>
       </div>
 
-      {/* Cobranza vs meta (mock todavía) */}
+      {/* Órdenes */}
       <div className="bg-white p-6 rounded-xl border shadow-sm">
         <p className="text-sm font-medium text-on-surface-variant mb-4">
           Órdenes
@@ -73,8 +39,8 @@ export default function SummaryGrid() {
         </p>
       </div>
 
-      {/* Stock */}
-      <div className="bg-blue-600 p-6 rounded-xl text-white rounded-xl">
+      {/* Productos */}
+      <div className="bg-blue-600 p-6 rounded-xl text-white">
         <p className="text-sm opacity-80">Productos</p>
 
         <h2 className="text-3xl font-bold mt-2">{data.productsCount}</h2>
