@@ -60,6 +60,15 @@ export class WineriesService {
     };
   }
 
+  async uploadImage(id: string, file: Express.Multer.File): Promise<Winery> {
+  const winery = await this.findOne(id);
+
+  const result = await this.cloudinaryService.uploadImage(file, 'wineries');
+
+  winery.imageUrl = result.secure_url;
+
+  return await this.wineryRepository.save(winery);
+}
   async findProductsByWinery(id: string) {
     const winery = await this.wineryRepository.findOne({
       where: { id },
