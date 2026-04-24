@@ -5,8 +5,7 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
-  UploadedFile,
+  Delete,UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import {

@@ -1,5 +1,13 @@
 {
   "extends": "./tsconfig.json",
   "exclude": ["node_modules", "test", "dist", "**/*spec.ts"],
-
+  "compilerOptions": {
+    "module": "nodenext",
+    "target": "es2017",
+    "outDir": "./dist",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strict": false,
+    "skipLibCheck": true
+  }
 }

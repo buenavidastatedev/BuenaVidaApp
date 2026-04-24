@@ -1,11 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-    IsEmail,
-    IsEnum,
-    IsOptional,
-    IsString,
-    IsBoolean,
-    MinLength,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsBoolean,
+  MinLength,
 } from 'class-validator';
 import { OAuthProvider, UserRole } from '../enums/user.enum';
 
