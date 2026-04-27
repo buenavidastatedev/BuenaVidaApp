@@ -1,32 +1,42 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
-  IsInt,
   IsNumber,
   IsPositive,
   IsUUID,
   MaxLength,
-  Min,
   IsString,
-    IsOptional,
+  IsOptional,
   IsUrl,
 } from 'class-validator';
+
 export class CreateProductDto {
-  @ApiProperty({ example: 'Malbec Reserva' })
+  @ApiProperty({
+    example: 'Malbec Reserva',
+    description: 'Nombre del producto o vino.',
+  })
   @IsString()
   @MaxLength(150)
   name!: string;
 
-  @ApiProperty({ example: 'uuid-de-la-bodega' })
+  @ApiProperty({
+    example: '63eadd94-c1bc-404e-b641-d9fbbce62abf',
+    description: 'ID UUID de la bodega a la que pertenece el producto.',
+  })
   @IsUUID()
   wineryId!: string;
 
-  @ApiProperty({ example: 12500.5 })
+  @ApiProperty({
+    example: 12500.5,
+    description: 'Precio unitario del producto.',
+  })
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   price!: number;
 
-    @ApiPropertyOptional({
+  @ApiPropertyOptional({
     example: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+    description:
+      'URL de imagen del producto. También puede cargarse luego por Cloudinary.',
   })
   @IsOptional()
   @IsString()

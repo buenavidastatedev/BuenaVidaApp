@@ -6,11 +6,13 @@ import { StockController } from './stock.controller';
 
 import { Stock } from './entities/stock.entity';
 import { StockMovement } from './entities/stock-movement.entity';
+import { Product } from 'src/products/entities/product.entity';
+import { Winery } from 'src/wineries/entities/winery.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Stock, StockMovement])],
+  imports: [TypeOrmModule.forFeature([Stock, StockMovement,Product,Winery])],
   controllers: [StockController],
   providers: [StockService],
-  exports: [StockService], // 👈 importante si lo usas en otros módulos
+  exports: [StockService], 
 })
 export class StockModule {}
