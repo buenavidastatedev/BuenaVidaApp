@@ -7,7 +7,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { ApiHideProperty, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiHideProperty,
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 
 import { OAuthProvider, UserRole } from '../enums/user.enum';
 import { Seller } from '../../sellers/entities/seller.entity';
@@ -26,7 +30,6 @@ export class User {
     example: 'sasha@gmail.com',
     description: 'Email único del usuario',
   })
-  @Index({ unique: true })
   @Column({ unique: true })
   email!: string;
 
