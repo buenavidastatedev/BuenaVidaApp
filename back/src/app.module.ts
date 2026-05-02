@@ -27,7 +27,6 @@ import { StockModule } from './stock/stock.module';
       isGlobal: true, // disponible en todos los módulos sin reimportar
       envFilePath: '.env',
     }),
-
     // ── Base de datos ────────────────────────────────────────
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -39,7 +38,7 @@ import { StockModule } from './stock/stock.module';
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: cfg.get<string>('NODE_ENV') === 'development',
         logging: cfg.get<string>('NODE_ENV') === 'development',
-        // dropSchema: cfg.get<string>('NODE_ENV') === 'development',
+        dropSchema: cfg.get<string>('NODE_ENV') === 'development',
       }),
     }),
 
