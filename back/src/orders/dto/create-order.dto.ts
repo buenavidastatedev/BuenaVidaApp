@@ -10,7 +10,11 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-class CreateOrderItemDto {
+/**
+ * DTO para los items que vienen en el request de creación de orden
+ * (NO tiene orderId ni price porque eso lo maneja el backend)
+ */
+export class CreateOrderItemInputDto {
   @ApiProperty({
     example: '75f4e79f-2178-4ef1-89c2-b2547f09e6f0',
     description: 'ID UUID del producto solicitado.',
@@ -46,17 +50,11 @@ export class CreateOrderDto {
   @ApiProperty({
     description:
       'Productos incluidos en la orden. Todos deben pertenecer a la misma bodega.',
-    example: [
-      {
-        productId: '75f4e79f-2178-4ef1-89c2-b2547f09e6f0',
-        quantity: 2,
-      },
-    ],
-    type: [CreateOrderItemDto],
+    type: [CreateOrderItemInputDto],
   })
   @IsArray()
   @ArrayMinSize(1)
   @ValidateNested({ each: true })
-  @Type(() => CreateOrderItemDto)
-  items!: CreateOrderItemDto[];
+  @Type(() => CreateOrderItemInputDto)
+  items!: CreateOrderItemInputDto[];
 }
