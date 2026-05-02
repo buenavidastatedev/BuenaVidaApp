@@ -34,11 +34,12 @@ import { StockModule } from './stock/stock.module';
       inject: [ConfigService],
       useFactory: (cfg: ConfigService): TypeOrmModuleOptions => ({
         type: 'mysql',
-        host: cfg.get<string>('DB_HOST'),
+        // host: cfg.get<string>('DB_HOST'),
         port: Number(cfg.get<string>('DB_PORT')) || 3306,
         username: cfg.get<string>('DB_USERNAME'),
         password: cfg.get<string>('DB_PASSWORD'),
         database: cfg.get<string>('DB_DATABASE'),
+        url: cfg.get<string>('DATABASE_URL'),
         entities: [__dirname + '/**/*.entity{.ts,.js}'],
         synchronize: cfg.get<string>('NODE_ENV') === 'development',
         logging: cfg.get<string>('NODE_ENV') === 'development',
