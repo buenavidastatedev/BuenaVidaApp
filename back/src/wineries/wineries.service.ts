@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -14,10 +18,17 @@ export class WineriesService {
     private readonly wineryRepository: Repository<Winery>,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
-
   async create(createWineryDto: CreateWineryDto): Promise<Winery> {
+    const exists = await this.wineryRepository.findOne({
+      where: { name: createWineryDto.name },
+    });
+
+    if (exists) {
+      throw new BadRequestException('La bodega ya existe');
+    }
+
     const winery = this.wineryRepository.create(createWineryDto);
-    return await this.wineryRepository.save(winery);
+    return this.wineryRepository.save(winery);
   }
 
   async findAll(): Promise<Winery[]> {
@@ -61,14 +72,14 @@ export class WineriesService {
   }
 
   async uploadImage(id: string, file: Express.Multer.File): Promise<Winery> {
-  const winery = await this.findOne(id);
+    const winery = await this.findOne(id);
 
-  const result = await this.cloudinaryService.uploadImage(file, 'wineries');
+    const result = await this.cloudinaryService.uploadImage(file, 'wineries');
 
-  winery.imageUrl = result.secure_url;
+    winery.imageUrl = result.secure_url;
 
-  return await this.wineryRepository.save(winery);
-}
+    return await this.wineryRepository.save(winery);
+  }
   async findProductsByWinery(id: string) {
     const winery = await this.wineryRepository.findOne({
       where: { id },

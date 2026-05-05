@@ -52,6 +52,7 @@ export class OrdersService {
     const order = this.orderRepo.create({
       client,
       status: OrderStatus.PENDING,
+      seller: dto.sellerId ? { id: dto.sellerId } : undefined,
     });
 
     let winery: Winery | null = null;

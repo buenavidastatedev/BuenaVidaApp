@@ -5,7 +5,8 @@ import {
   Body,
   Patch,
   Param,
-  Delete,UploadedFile,
+  Delete,
+  UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import {
@@ -51,8 +52,7 @@ export class WineriesController {
   @Get()
   @ApiOperation({
     summary: 'Listar bodegas',
-    description:
-      'Obtiene todas las bodegas con sus productos asociados.',
+    description: 'Obtiene todas las bodegas con sus productos asociados.',
   })
   @ApiResponse({
     status: 200,

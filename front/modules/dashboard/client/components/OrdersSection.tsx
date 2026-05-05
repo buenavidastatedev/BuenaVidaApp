@@ -1,13 +1,30 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+
 const orders = [
   { id: "94821", status: "En Camino" },
   { id: "94755", status: "Preparado" },
 ];
 
 export default function OrdersSection() {
+  const router = useRouter();
+
   return (
     <section>
-      <h2 className="text-2xl font-bold mb-6">Seguimiento de Pedidos</h2>
+      {/* HEADER CON BOTÓN */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold">Seguimiento de Pedidos</h2>
 
+        <button
+          onClick={() => router.push("/dashboard/client/orders/new")}
+          className="bg-pink-600 text-white px-5 py-2 rounded-xl font-bold"
+        >
+          Nuevo Pedido
+        </button>
+      </div>
+
+      {/* LISTADO */}
       <div className="grid md:grid-cols-2 gap-6">
         {orders.map((order) => (
           <div

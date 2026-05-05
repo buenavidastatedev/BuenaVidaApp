@@ -173,4 +173,17 @@ export class AuthService {
     await this.userRepo.update(userId, { refreshToken: '' });
     return { message: 'Sesión cerrada correctamente' };
   }
+
+  async getProfile(userId: string) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['client', 'seller.winery'], // 👈 CLAVE
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    return user;
+  }
 }

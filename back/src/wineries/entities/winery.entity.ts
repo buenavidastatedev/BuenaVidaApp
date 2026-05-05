@@ -8,6 +8,7 @@ import {
 } from 'typeorm';
 
 import { Product } from '../../products/entities/product.entity';
+import { Seller } from 'src/sellers/entities/seller.entity';
 
 @Entity('wineries')
 export class Winery {
@@ -32,6 +33,9 @@ export class Winery {
     nullable: true,
   })
   imageUrl!: string | null;
+
+  @OneToMany(() => Seller, (seller) => seller.winery)
+  sellers: Seller[];
 
   @Column({
     type: 'boolean',

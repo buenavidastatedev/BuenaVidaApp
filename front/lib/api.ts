@@ -131,3 +131,25 @@ export const getStockAlerts = () =>
 
 export const getTopProducts = () =>
   fetchWithAuth(`${API_URL}/dashboard/top-products`);
+
+/* =========================
+   ORDERS
+========================= */
+
+export async function createOrder(data: {
+  clientId: string;
+  items: { productId: string; quantity: number }[];
+}) {
+  return fetchWithAuth(`${API_URL}/orders`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getProducts() {
+  return fetchWithAuth(`${API_URL}/products`);
+}
+
+export async function getProfile() {
+  return fetchWithAuth(`${API_URL}/auth/profile`);
+}

@@ -108,8 +108,7 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   @ApiOperation({
     summary: 'Iniciar autenticación con Google',
-    description:
-      'Redirige al usuario a Google para iniciar sesión con OAuth.',
+    description: 'Redirige al usuario a Google para iniciar sesión con OAuth.',
   })
   @ApiResponse({
     status: 302,
@@ -210,6 +209,6 @@ export class AuthController {
     description: 'No autorizado. Token inválido o ausente.',
   })
   getProfile(@CurrentUser() user: User) {
-    return user;
+    return this.authService.getProfile(user.id);
   }
 }

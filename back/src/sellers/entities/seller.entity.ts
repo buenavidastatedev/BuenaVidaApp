@@ -11,6 +11,7 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { Client } from '../../clients/entities/client.entity';
 import { Order } from '../../orders/entities/order.entity';
+import { Winery } from 'src/wineries/entities/winery.entity';
 
 @Entity('sellers')
 export class Seller {
@@ -26,6 +27,10 @@ export class Seller {
   })
   @JoinColumn()
   user!: User;
+
+  @OneToOne(() => Winery)
+  @JoinColumn()
+  winery!: Winery;
 
   /**
    * Relación 1:N con Client
