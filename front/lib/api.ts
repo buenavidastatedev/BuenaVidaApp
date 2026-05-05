@@ -27,7 +27,7 @@ export async function loginRequest(data: { email: string; password: string }) {
 }
 
 /* =========================
-   BASE FETCH (FIXED)
+   BASE FETCH (NO TOCAR)
 ========================= */
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
@@ -46,6 +46,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     cache: "no-store",
   });
 
+  // 🔁 REFRESH TOKEN AUTOMÁTICO
   if (res.status === 401 && typeof window !== "undefined") {
     const refreshToken = localStorage.getItem(REFRESH_KEY);
 
@@ -133,6 +134,26 @@ export const getTopProducts = () =>
   fetchWithAuth(`${API_URL}/dashboard/top-products`);
 
 /* =========================
+   PRODUCTS
+========================= */
+
+export async function getProducts() {
+  return fetchWithAuth(`${API_URL}/products`);
+}
+
+/* =========================
+   CLIENTS
+========================= */
+
+export async function getClients() {
+  return fetchWithAuth(`${API_URL}/clients`);
+}
+
+export async function getClientById(id: string) {
+  return fetchWithAuth(`${API_URL}/clients/${id}`);
+}
+
+/* =========================
    ORDERS
 ========================= */
 
@@ -146,9 +167,67 @@ export async function createOrder(data: {
   });
 }
 
-export async function getProducts() {
-  return fetchWithAuth(`${API_URL}/products`);
+export async function getOrders() {
+  return fetchWithAuth(`${API_URL}/orders`);
 }
+
+export async function getOrderById(id: string) {
+  return fetchWithAuth(`${API_URL}/orders/${id}`);
+}
+
+export async function updateOrder(
+  id: string,
+  data: Partial<{
+    status: string;
+    clientId: string;
+  }>,
+) {
+  return fetchWithAuth(`${API_URL}/orders/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteOrder(id: string) {
+  return fetchWithAuth(`${API_URL}/orders/${id}`, {
+    method: "DELETE",
+  });
+}
+
+/* =========================
+   ORDER ITEMS
+========================= */
+
+export async function getOrderItems() {
+  return fetchWithAuth(`${API_URL}/order-items`);
+}
+
+export async function getOrderItemsByOrder(orderId: string) {
+  return fetchWithAuth(`${API_URL}/order-items?orderId=${orderId}`);
+}
+
+/* =========================
+   STOCK
+========================= */
+
+export async function getStock() {
+  return fetchWithAuth(`${API_URL}/stock`);
+}
+
+export async function moveStock(data: {
+  productId: string;
+  quantity: number;
+  type: "IN" | "OUT";
+}) {
+  return fetchWithAuth(`${API_URL}/stock/move`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+/* =========================
+   USER
+========================= */
 
 export async function getProfile() {
   return fetchWithAuth(`${API_URL}/auth/profile`);
