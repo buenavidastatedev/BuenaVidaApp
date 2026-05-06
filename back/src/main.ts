@@ -35,12 +35,11 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
 
+  await seed(app.get(DataSource));
   // 🔥 FIX IMPORTANTE
   SwaggerModule.setup('docs', app, document, {
     useGlobalPrefix: true,
   });
-
-  await seed(app.get(DataSource));
   console.log('🔥 SWAGGER VERSION NUEVA');
 
   await app.listen(process.env.PORT ?? 3003, '0.0.0.0');
