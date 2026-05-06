@@ -35,7 +35,11 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup('docs', app, document);
+  // 🔥 FIX IMPORTANTE
+  SwaggerModule.setup('docs', app, document, {
+    useGlobalPrefix: true,
+  });
+
   await seed(app.get(DataSource));
   console.log('🔥 SWAGGER VERSION NUEVA');
 
