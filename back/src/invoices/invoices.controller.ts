@@ -6,7 +6,10 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
+import * as PDFDocument from 'pdfkit';
 import {
   ApiBody,
   ApiOperation,
@@ -134,21 +137,29 @@ export class InvoicesController {
     description: 'ID UUID del comprobante.',
     example: 'd24e957f-2f46-43b7-a7ed-296a72ef3a4e',
   })
+  @Public()
+  @Get(':id/pdf')
+  @ApiOperation({
+    summary: 'Generar PDF del comprobante',
+    description: 'Genera un PDF básico del remito o presupuesto.',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Comprobante eliminado correctamente.',
-    schema: {
-      example: {
-        message:
-          'Invoice with id d24e957f-2f46-43b7-a7ed-296a72ef3a4e deleted successfully',
-      },
-    },
+    description: 'PDF generado correctamente.',
   })
-  @ApiResponse({
-    status: 404,
-    description: 'Comprobante no encontrado.',
-  })
-  remove(@Param('id') id: string) {
-    return this.invoicesService.remove(id);
+  async generatePdf(@Param('id') id: string, @Res() res: Response) {
+    const invoice = await this.invoicesService.findOne(id);
+    if (!invoice) throw new Error('Invoice not found');
+
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=remito-${id}.pdf`);
+
+    doc.pipe(res);
+    doc.fontSize(20).text('Remito Buena Vida', 100, 100);
+    doc.fontSize(14).text(`ID: ${invoice.id}`, 100, 130);
+    doc.text(`Tipo: ${invoice.type}`, 100, 150);
+    doc.text(`Total: $${invoice.total}`, 100, 170);
+    doc.end();
   }
 }
