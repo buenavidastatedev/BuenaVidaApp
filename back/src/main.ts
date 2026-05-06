@@ -8,10 +8,8 @@ import { DataSource } from 'typeorm';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Prefijo global para todas las rutas
   app.setGlobalPrefix('api');
 
-  // Validación automática de DTOs
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -21,11 +19,10 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: true, // tu front
+    origin: '*',
     credentials: true,
   });
 
-  // Configuración Swagger
   const config = new DocumentBuilder()
     .setTitle('Buena Vida API')
     .setDescription('Sistema de pedidos mayoristas de vinos')
@@ -35,7 +32,9 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup('docs', app, document);
+  // ✅ Path completo, sin useGlobalPrefix
+  SwaggerModule.setup('api/docs', app, document);
+
   await seed(app.get(DataSource));
 
   await app.listen(process.env.PORT ?? 3003, '0.0.0.0');

@@ -11,7 +11,8 @@ export default function QuickActions() {
       {actions.map(([icon, label]) => (
         <button
           key={label}
-          className="bg-white border border-zinc-200 rounded-xl shadow-sm p-5 flex items-center justify-between hover:shadow-md transition"
+          className="bg-white border border-zinc-200 rounded-xl shadow-sm p-5 flex items-center justify-between hover:shadow-md transition opacity-50 cursor-not-allowed"
+          disabled
         >
           <div className="flex items-center gap-4">
             <div className="bg-pink-100 text-pink-600 p-3 rounded-lg">
