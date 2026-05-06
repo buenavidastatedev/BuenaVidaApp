@@ -2,6 +2,17 @@ import "./globals.css";
 import { Montserrat } from "next/font/google";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
+export const metadata = {
+  title: "Buena Vida",
+  description: "App",
+  icons: {
+    icon: [
+      { url: "/buenavida.png", sizes: "192x192", type: "image/png" },
+      { url: "/buenavida.png", sizes: "512x512", type: "image/png" },
+    ],
+  },
+};
+
 const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
