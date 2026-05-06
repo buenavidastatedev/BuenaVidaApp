@@ -8,10 +8,8 @@ import { DataSource } from 'typeorm';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Prefijo global para todas las rutas
   app.setGlobalPrefix('api');
 
-  // Validación automática de DTOs
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -21,11 +19,11 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: true, // tu front
+    origin: true,
     credentials: true,
   });
 
-  // Configuración Swagger
+  // ✅ Swagger PRIMERO, antes del seed y del listen
   const config = new DocumentBuilder()
     .setTitle('Buena Vida API')
     .setDescription('Sistema de pedidos mayoristas de vinos')
@@ -35,13 +33,14 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
 
-  await seed(app.get(DataSource));
-  // 🔥 FIX IMPORTANTE
   SwaggerModule.setup('docs', app, document, {
     useGlobalPrefix: true,
   });
-  console.log('🔥 SWAGGER VERSION NUEVA');
 
+  // ✅ Seed después
+  await seed(app.get(DataSource));
+
+  // ✅ Listen al final
   await app.listen(process.env.PORT ?? 3003, '0.0.0.0');
   console.log(`🚀 App running on port ${process.env.PORT}`);
 }
