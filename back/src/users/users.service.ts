@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -19,8 +19,10 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const existingUser = await this.userRepository.findOne({
-      where: { email: createUserDto.email },
-      withDeleted: false,
+      where: {
+        email: createUserDto.email,
+        deletedAt: IsNull(),
+      },
     });
 
     if (existingUser) {
@@ -36,6 +38,9 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     return await this.userRepository.find({
+      where: {
+        deletedAt: IsNull(),
+      },
       relations: ['seller', 'client'],
       order: {
         createdAt: 'DESC',
@@ -45,7 +50,10 @@ export class UsersService {
 
   async findOne(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
-      where: { id },
+      where: {
+        id,
+        deletedAt: IsNull(),
+      },
       relations: ['seller', 'client'],
     });
 
@@ -61,7 +69,10 @@ export class UsersService {
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {
       const existingUser = await this.userRepository.findOne({
-        where: { email: updateUserDto.email },
+        where: {
+          email: updateUserDto.email,
+          deletedAt: IsNull(),
+        },
       });
 
       if (existingUser) {
@@ -115,10 +126,13 @@ export class UsersService {
   async remove(id: string): Promise<{ message: string }> {
     const user = await this.findOne(id);
 
-    await this.userRepository.remove(user);
+    user.isActive = false;
+    await this.userRepository.save(user);
+
+    await this.userRepository.softDelete(id);
 
     return {
-      message: `User with id ${id} deleted successfully`,
+      message: `User with id ${id} soft deleted successfully`,
     };
   }
 }

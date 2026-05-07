@@ -131,10 +131,33 @@ export class ClientsService {
   async remove(id: string): Promise<{ message: string }> {
     const client = await this.findOne(id);
 
-    await this.clientRepository.remove(client);
+    await this.clientRepository.softDelete(client.id);
 
     return {
       message: `Client with id ${id} deleted successfully`,
+    };
+  }
+
+  async restore(id: string): Promise<{ message: string }> {
+    const client = await this.clientRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+
+    if (!client) {
+      throw new NotFoundException(`Client with id ${id} not found`);
+    }
+
+    if (!client.deletedAt) {
+      return {
+        message: `Client with id ${id} is not deleted`,
+      };
+    }
+
+    await this.clientRepository.restore(id);
+
+    return {
+      message: `Client with id ${id} restored successfully`,
     };
   }
 }

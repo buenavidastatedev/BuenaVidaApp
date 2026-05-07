@@ -164,7 +164,7 @@ export class UsersController {
     schema: {
       example: {
         message:
-          'User with id 5b7e5e63-ef54-4a9a-8c3c-1a0f34f0f1a2 deleted successfully',
+          'User with id 5b7e5e63-ef54-4a9a-8c3c-1a0f34f0f1a2 soft deleted successfully',
       },
     },
   })
