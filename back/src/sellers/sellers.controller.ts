@@ -8,6 +8,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
@@ -19,25 +20,35 @@ import { SellersService } from './sellers.service';
 import { CreateSellerDto } from './dto/create-seller.dto';
 import { UpdateSellerDto } from './dto/update-seller.dto';
 import { Seller } from './entities/seller.entity';
-import { Public } from '../auth/decorators/auth.decorators';
+import { Roles } from '../auth/decorators/auth.decorators';
+import { UserRole } from '../users/enums/user.enum';
 
 @ApiTags('Sellers')
+@ApiBearerAuth()
 @Controller('sellers')
 export class SellersController {
   constructor(private readonly sellersService: SellersService) {}
 
-  @Public()
+  @Roles(UserRole.OWNER)
   @Post()
   @ApiOperation({
     summary: 'Crear vendedor',
     description:
-      'Crea un perfil de vendedor asociado a un usuario existente. Un usuario solo puede tener un perfil de vendedor.',
+      'Crea un perfil de vendedor asociado a un usuario existente. Un usuario solo puede tener un perfil de vendedor. Requiere rol OWNER.',
   })
   @ApiBody({ type: CreateSellerDto })
   @ApiResponse({
     status: 201,
     description: 'Vendedor creado correctamente.',
     type: Seller,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
   })
   @ApiResponse({
     status: 404,
@@ -51,27 +62,36 @@ export class SellersController {
     return this.sellersService.create(createSellerDto);
   }
 
-  @Public()
+  @Roles(UserRole.OWNER, UserRole.SELLER)
   @Get()
   @ApiOperation({
     summary: 'Listar vendedores',
     description:
-      'Obtiene todos los vendedores con sus relaciones: usuario, clientes y pedidos.',
+      'Obtiene todos los vendedores con sus relaciones: usuario, clientes y pedidos. Requiere rol OWNER o SELLER.',
   })
   @ApiResponse({
     status: 200,
     description: 'Lista de vendedores obtenida correctamente.',
     type: [Seller],
   })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
   findAll() {
     return this.sellersService.findAll();
   }
 
-  @Public()
+  @Roles(UserRole.OWNER, UserRole.SELLER)
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener vendedor por ID',
-    description: 'Busca un vendedor específico por su ID.',
+    description:
+      'Busca un vendedor específico por su ID. Requiere rol OWNER o SELLER.',
   })
   @ApiParam({
     name: 'id',
@@ -84,6 +104,14 @@ export class SellersController {
     type: Seller,
   })
   @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
+  @ApiResponse({
     status: 404,
     description: 'Vendedor no encontrado.',
   })
@@ -91,12 +119,12 @@ export class SellersController {
     return this.sellersService.findOne(id);
   }
 
-  @Public()
+  @Roles(UserRole.OWNER)
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar vendedor',
     description:
-      'Actualiza el usuario asociado a un vendedor. El nuevo usuario no debe tener otro perfil de vendedor.',
+      'Actualiza el usuario asociado a un vendedor. El nuevo usuario no debe tener otro perfil de vendedor. Requiere rol OWNER.',
   })
   @ApiParam({
     name: 'id',
@@ -110,6 +138,14 @@ export class SellersController {
     type: Seller,
   })
   @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
+  @ApiResponse({
     status: 404,
     description: 'Vendedor o usuario no encontrado.',
   })
@@ -121,11 +157,11 @@ export class SellersController {
     return this.sellersService.update(id, updateSellerDto);
   }
 
-  @Public()
+  @Roles(UserRole.OWNER)
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar vendedor',
-    description: 'Elimina un vendedor por ID.',
+    description: 'Elimina un vendedor por ID. Requiere rol OWNER.',
   })
   @ApiParam({
     name: 'id',
@@ -141,6 +177,14 @@ export class SellersController {
           'Seller with id 9f375f53-66f2-4a71-a1e3-11f9d17c987a deleted successfully',
       },
     },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
   })
   @ApiResponse({
     status: 404,

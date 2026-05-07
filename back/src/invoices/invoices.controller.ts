@@ -11,6 +11,7 @@ import {
 import type { Response } from 'express';
 import * as PDFDocument from 'pdfkit';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiParam,
@@ -22,23 +23,35 @@ import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { Invoice } from './entities/invoice.entity';
+import { Roles } from '../auth/decorators/auth.decorators';
+import { UserRole } from '../users/enums/user.enum';
 
 @ApiTags('Invoices')
+@ApiBearerAuth()
 @Controller('invoices')
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
+  @Roles(UserRole.OWNER, UserRole.SELLER)
   @Post()
   @ApiOperation({
     summary: 'Crear comprobante',
     description:
-      'Crea un comprobante asociado a una orden. Puede ser presupuesto o remito. Una orden solo puede tener un comprobante.',
+      'Crea un comprobante asociado a una orden. Puede ser presupuesto o remito. Una orden solo puede tener un comprobante. Requiere rol OWNER o SELLER.',
   })
   @ApiBody({ type: CreateInvoiceDto })
   @ApiResponse({
     status: 201,
     description: 'Comprobante creado correctamente.',
     type: Invoice,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
   })
   @ApiResponse({
     status: 404,
@@ -52,24 +65,36 @@ export class InvoicesController {
     return this.invoicesService.create(createInvoiceDto);
   }
 
+  @Roles(UserRole.OWNER, UserRole.SELLER)
   @Get()
   @ApiOperation({
     summary: 'Listar comprobantes',
-    description: 'Obtiene todos los comprobantes con su orden asociada.',
+    description:
+      'Obtiene todos los comprobantes con su orden asociada. Requiere rol OWNER o SELLER.',
   })
   @ApiResponse({
     status: 200,
     description: 'Lista de comprobantes obtenida correctamente.',
     type: [Invoice],
   })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
   findAll() {
     return this.invoicesService.findAll();
   }
 
+  @Roles(UserRole.OWNER, UserRole.SELLER, UserRole.CLIENT)
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener comprobante por ID',
-    description: 'Busca un comprobante específico por su ID.',
+    description:
+      'Busca un comprobante específico por su ID. Requiere rol OWNER, SELLER o CLIENT.',
   })
   @ApiParam({
     name: 'id',
@@ -82,6 +107,14 @@ export class InvoicesController {
     type: Invoice,
   })
   @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
+  @ApiResponse({
     status: 404,
     description: 'Comprobante no encontrado.',
   })
@@ -89,11 +122,12 @@ export class InvoicesController {
     return this.invoicesService.findOne(id);
   }
 
+  @Roles(UserRole.OWNER, UserRole.SELLER)
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar comprobante',
     description:
-      'Actualiza el tipo, total u orden asociada al comprobante. Si se cambia la orden, esa orden no debe tener ya otro comprobante.',
+      'Actualiza el tipo, total u orden asociada al comprobante. Si se cambia la orden, esa orden no debe tener ya otro comprobante. Requiere rol OWNER o SELLER.',
   })
   @ApiParam({
     name: 'id',
@@ -107,6 +141,14 @@ export class InvoicesController {
     type: Invoice,
   })
   @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
+  @ApiResponse({
     status: 404,
     description: 'Comprobante u orden no encontrada.',
   })
@@ -118,10 +160,11 @@ export class InvoicesController {
     return this.invoicesService.update(id, updateInvoiceDto);
   }
 
+  @Roles(UserRole.OWNER)
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar comprobante',
-    description: 'Elimina un comprobante por ID.',
+    description: 'Elimina un comprobante por ID. Requiere rol OWNER.',
   })
   @ApiParam({
     name: 'id',
@@ -135,6 +178,16 @@ export class InvoicesController {
       'Genera un PDF detallado del remito o presupuesto con información del cliente y productos.',
   })
   @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Comprobante no encontrado.',
     status: 200,
     description: 'PDF generado correctamente.',
   })
