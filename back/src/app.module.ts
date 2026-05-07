@@ -20,6 +20,7 @@ import { InvoicesModule } from './invoices/invoices.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { WineriesModule } from './wineries/wineries.module';
 import { StockModule } from './stock/stock.module';
+import { SettlementConfigModule } from './settlement-config/settlement-config.module';
 
 @Module({
   imports: [
@@ -87,6 +88,7 @@ import { StockModule } from './stock/stock.module';
     DashboardModule,
     WineriesModule,
     StockModule,
+    SettlementConfigModule,
   ],
   controllers: [AppController],
   providers: [

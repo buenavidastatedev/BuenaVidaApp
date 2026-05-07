@@ -6,6 +6,7 @@ import { Order } from 'src/orders/entities/order.entity';
 import { Product } from 'src/products/entities/product.entity';
 import { Stock } from 'src/stock/entities/stock.entity';
 import { OrderStatus } from 'src/common/decorators/guards/filters/interceptors/enums/order-status.enum';
+import { SettlementConfigService } from 'src/settlement-config/settlement-config.service';
 
 @Injectable()
 export class DashboardService {
@@ -18,6 +19,8 @@ export class DashboardService {
 
     @InjectRepository(Stock)
     private readonly stockRepo: Repository<Stock>,
+
+    private readonly settlementConfigService: SettlementConfigService,
   ) {}
 
   async getSummary() {
@@ -32,13 +35,9 @@ export class DashboardService {
     ]);
 
     const totalSales = orders.reduce((acc, o) => acc + Number(o.total), 0);
-
     const ordersCount = orders.length;
-
-    // 🔥 promedio por orden
     const avgOrderValue = ordersCount > 0 ? totalSales / ordersCount : 0;
 
-    // 🔥 órdenes pendientes (ajustar según tu entity)
     const pendingOrders = orders.filter(
       (o) => o.status === OrderStatus.PENDING,
     ).length;
@@ -52,6 +51,7 @@ export class DashboardService {
       pendingOrders,
     };
   }
+
   async getLowStock() {
     return this.stockRepo.find({
       where: {
@@ -70,7 +70,6 @@ export class DashboardService {
 
     for (const order of orders) {
       const name = order.client?.name || 'Sin nombre';
-
       const current = map.get(name) || 0;
 
       map.set(name, current + Number(order.total));
@@ -96,7 +95,13 @@ export class DashboardService {
       lowStock,
     };
   }
+
   async getWinerySettlements() {
+    const config = await this.settlementConfigService.findActive();
+
+    const commissionPercentage = Number(config.commissionPercentage);
+    const ivaPercentage = Number(config.ivaPercentage);
+
     const orders = await this.orderRepo.find({
       relations: ['winery'],
     });
@@ -114,8 +119,8 @@ export class DashboardService {
     }
 
     return Object.entries(grouped).map(([name, total]) => {
-      const commission = total * 0.05; // ajustable
-      const iva = total * 0.19;
+      const commission = total * (commissionPercentage / 100);
+      const iva = total * (ivaPercentage / 100);
 
       return {
         winery: name,
@@ -123,6 +128,10 @@ export class DashboardService {
         commission,
         iva,
         net: total - commission - iva,
+        config: {
+          commissionPercentage,
+          ivaPercentage,
+        },
       };
     });
   }
@@ -137,9 +146,7 @@ export class DashboardService {
 
     for (const order of orders) {
       const sellerName = order.seller?.user?.firstname ?? 'Sin vendedor';
-
       const current = map.get(sellerName) ?? 0;
-
       const value = Number(order.total ?? 0);
 
       map.set(sellerName, current + value);
