@@ -22,14 +22,12 @@ import { InvoicesService } from './invoices.service';
 import { CreateInvoiceDto } from './dto/create-invoice.dto';
 import { UpdateInvoiceDto } from './dto/update-invoice.dto';
 import { Invoice } from './entities/invoice.entity';
-import { Public } from '../auth/decorators/auth.decorators';
 
 @ApiTags('Invoices')
 @Controller('invoices')
 export class InvoicesController {
   constructor(private readonly invoicesService: InvoicesService) {}
 
-  @Public()
   @Post()
   @ApiOperation({
     summary: 'Crear comprobante',
@@ -54,7 +52,6 @@ export class InvoicesController {
     return this.invoicesService.create(createInvoiceDto);
   }
 
-  @Public()
   @Get()
   @ApiOperation({
     summary: 'Listar comprobantes',
@@ -69,7 +66,6 @@ export class InvoicesController {
     return this.invoicesService.findAll();
   }
 
-  @Public()
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener comprobante por ID',
@@ -93,7 +89,6 @@ export class InvoicesController {
     return this.invoicesService.findOne(id);
   }
 
-  @Public()
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar comprobante',
@@ -119,14 +114,10 @@ export class InvoicesController {
     status: 409,
     description: 'La orden ya tiene otro comprobante asociado.',
   })
-  update(
-    @Param('id') id: string,
-    @Body() updateInvoiceDto: UpdateInvoiceDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateInvoiceDto: UpdateInvoiceDto) {
     return this.invoicesService.update(id, updateInvoiceDto);
   }
 
-  @Public()
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar comprobante',
@@ -137,11 +128,11 @@ export class InvoicesController {
     description: 'ID UUID del comprobante.',
     example: 'd24e957f-2f46-43b7-a7ed-296a72ef3a4e',
   })
-  @Public()
   @Get(':id/pdf')
   @ApiOperation({
     summary: 'Generar PDF del comprobante',
-    description: 'Genera un PDF básico del remito o presupuesto.',
+    description:
+      'Genera un PDF detallado del remito o presupuesto con información del cliente y productos.',
   })
   @ApiResponse({
     status: 200,
@@ -153,13 +144,49 @@ export class InvoicesController {
 
     const doc = new PDFDocument();
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=remito-${id}.pdf`);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=remito-${id}.pdf`,
+    );
 
     doc.pipe(res);
-    doc.fontSize(20).text('Remito Buena Vida', 100, 100);
-    doc.fontSize(14).text(`ID: ${invoice.id}`, 100, 130);
-    doc.text(`Tipo: ${invoice.type}`, 100, 150);
-    doc.text(`Total: $${invoice.total}`, 100, 170);
+
+    // Header
+    doc.fontSize(20).text('REMITO - BUENA VIDA', { align: 'center' });
+    doc.moveDown();
+
+    // Invoice details
+    doc.fontSize(12).text(`Número de Remito: ${invoice.id}`, 50, 100);
+    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 50, 120);
+    doc.text(`Tipo: ${invoice.type}`, 50, 140);
+    doc.moveDown();
+
+    // Client info
+    if (invoice.order?.client?.user) {
+      const user = invoice.order.client.user;
+      doc.text(`Cliente: ${user.firstname} ${user.lastname}`, 50, 180);
+      doc.text(`Email: ${user.email}`, 50, 200);
+    }
+    doc.moveDown();
+
+    // Products table
+    doc.text('Productos:', 50, 240);
+    let y = 260;
+    if (invoice.order?.items) {
+      invoice.order.items.forEach((item, index) => {
+        doc.text(
+          `${index + 1}. ${item.product?.name || 'Producto'} - Cantidad: ${item.quantity} - Precio: $${item.price}`,
+          50,
+          y,
+        );
+        y += 20;
+      });
+    }
+
+    // Total
+    doc.moveDown();
+    doc.fontSize(14).text(`Total: $${invoice.total}`, { align: 'right' });
+
     doc.end();
   }
 }

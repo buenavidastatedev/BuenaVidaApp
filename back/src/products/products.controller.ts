@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -31,7 +32,6 @@ import { Public } from '../auth/decorators/auth.decorators';
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Public()
   @Post()
   @ApiOperation({
     summary: 'Crear producto/vino',
@@ -57,15 +57,35 @@ export class ProductsController {
   @ApiOperation({
     summary: 'Listar productos',
     description:
-      'Obtiene todos los productos con su bodega y registros de stock asociados.',
+      'Obtiene todos los productos con su bodega y registros de stock asociados. Soporta paginación.',
   })
   @ApiResponse({
     status: 200,
     description: 'Lista de productos obtenida correctamente.',
-    type: [Product],
+    schema: {
+      example: {
+        products: [
+          {
+            id: 'uuid',
+            name: 'Malbec Reserva',
+            price: 12500.5,
+            winery: { name: 'Catena Zapata' },
+          },
+        ],
+        total: 25,
+        page: 1,
+        limit: 10,
+        totalPages: 3,
+      },
+    },
   })
-  findAll() {
-    return this.productsService.findAll();
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    return this.productsService.findAll(pageNum, limitNum);
   }
 
   @Public()
@@ -92,7 +112,6 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
-  @Public()
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
@@ -134,7 +153,6 @@ export class ProductsController {
     return this.productsService.uploadImage(id, file);
   }
 
-  @Public()
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar producto',
@@ -163,7 +181,6 @@ export class ProductsController {
     return this.productsService.update(id, updateProductDto);
   }
 
-  @Public()
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar producto',

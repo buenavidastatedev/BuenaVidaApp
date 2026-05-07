@@ -59,7 +59,13 @@ export class InvoicesService {
   async findOne(id: string): Promise<Invoice> {
     const invoice = await this.invoiceRepository.findOne({
       where: { id },
-      relations: ['order'],
+      relations: [
+        'order',
+        'order.client',
+        'order.client.user',
+        'order.items',
+        'order.items.product',
+      ],
     });
 
     if (!invoice) {

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { logoutRequest } from "@/lib/api";
 
 type NavLink = {
   label: string;
@@ -25,12 +26,10 @@ export default function Navbar({
   const router = useRouter();
 
   const handleLogout = async () => {
-    localStorage.removeItem("token");
-
     try {
-      await fetch("/api/logout", { method: "POST" });
+      await logoutRequest();
     } catch (e) {
-      console.log(e, "logout sin backend");
+      console.error(e, "Logout failed");
     }
 
     router.push("/");

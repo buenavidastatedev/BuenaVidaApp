@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -27,6 +28,22 @@ import { StockModule } from './stock/stock.module';
       isGlobal: true, // disponible en todos los módulos sin reimportar
       envFilePath: '.env',
     }),
+
+    // Rate limiting
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute
+        limit: 10, // 10 requests per minute
+      },
+    ]),
+
+    // ── Rate limiting ────────────────────────────────────────
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minuto
+        limit: 10, // 10 requests por minuto
+      },
+    ]),
     // ── Base de datos ────────────────────────────────────────
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -79,6 +96,11 @@ import { StockModule } from './stock/stock.module';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    // Rate limiting global
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

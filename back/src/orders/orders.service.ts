@@ -125,10 +125,15 @@ export class OrdersService {
     return this.orderRepo.save(order);
   }
 
-  async findAll() {
-    return this.orderRepo.find({
+  async findAll(page: number = 1, limit: number = 10) {
+    const [orders, total] = await this.orderRepo.findAndCount({
       relations: ['client', 'items', 'items.product'],
+      order: { createdAt: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return { orders, total };
   }
 
   async findOne(id: string) {

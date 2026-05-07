@@ -1,19 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
-import {
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { DashboardService } from './dashboard.service';
-import { Public } from '../auth/decorators/auth.decorators';
 
 @ApiTags('Dashboard')
 @Controller('dashboard')
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  @Public()
   @Get('summary')
   @ApiOperation({
     summary: 'Resumen general del dashboard',
@@ -38,7 +32,6 @@ export class DashboardController {
     return this.dashboardService.getSummary();
   }
 
-  @Public()
   @Get('stock-alerts')
   @ApiOperation({
     summary: 'Alertas de stock bajo',
@@ -67,7 +60,6 @@ export class DashboardController {
     return this.dashboardService.getLowStock();
   }
 
-  @Public()
   @Get('alerts')
   @ApiOperation({
     summary: 'Alertas generales',
@@ -88,7 +80,6 @@ export class DashboardController {
     return this.dashboardService.getAlerts();
   }
 
-  @Public()
   @Get('settlements')
   @ApiOperation({
     summary: 'Liquidaciones por bodega',
@@ -114,7 +105,6 @@ export class DashboardController {
     return this.dashboardService.getWinerySettlements();
   }
 
-  @Public()
   @Get('top-clients')
   @ApiOperation({
     summary: 'Top clientes',
@@ -137,7 +127,6 @@ export class DashboardController {
     return this.dashboardService.getTopClients();
   }
 
-  @Public()
   @Get('sellers')
   @ApiOperation({
     summary: 'Rendimiento de vendedores',
