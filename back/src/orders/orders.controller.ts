@@ -13,6 +13,7 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiQuery,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -64,31 +65,28 @@ export class OrdersController {
     return this.ordersService.create(createOrderDto);
   }
 
-  @Roles(UserRole.OWNER, UserRole.SELLER)
+  @Roles(UserRole.OWNER, UserRole.SELLER, UserRole.CLIENT)
   @Get()
   @ApiOperation({
     summary: 'Listar órdenes',
     description:
-      'Obtiene todas las órdenes con cliente, items y productos asociados. Requiere rol OWNER o SELLER.',
+      'Obtiene órdenes paginadas con cliente, items y productos asociados. Requiere rol OWNER, SELLER o CLIENT.',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    example: 1,
+    description: 'Número de página',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    example: 10,
+    description: 'Cantidad de registros por página',
   })
   @ApiResponse({
     status: 200,
     description: 'Lista de órdenes obtenida correctamente.',
-    type: [Order],
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
-  findAll() {
-    return this.ordersService.findAll();
-  }
-
-  @Roles(UserRole.OWNER, UserRole.SELLER, UserRole.CLIENT)
     schema: {
       example: {
         orders: [
@@ -96,7 +94,11 @@ export class OrdersController {
             id: 'uuid',
             total: 25000,
             status: 'pending',
-            client: { user: { name: 'Cliente' } },
+            client: {
+              user: {
+                name: 'Cliente',
+              },
+            },
           },
         ],
         total: 50,
@@ -106,15 +108,25 @@ export class OrdersController {
       },
     },
   })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
   findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
   ) {
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 10;
+
     return this.ordersService.findAll(pageNum, limitNum);
   }
 
+  @Roles(UserRole.OWNER, UserRole.SELLER, UserRole.CLIENT)
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener orden por ID',

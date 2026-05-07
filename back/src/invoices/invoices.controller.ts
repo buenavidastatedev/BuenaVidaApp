@@ -7,9 +7,10 @@ import {
   Param,
   Delete,
   Res,
+  NotFoundException,
 } from '@nestjs/common';
 import type { Response } from 'express';
-import * as PDFDocument from 'pdfkit';
+import PDFDocument from 'pdfkit';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -186,17 +187,20 @@ export class InvoicesController {
     description: 'Acceso denegado por rol.',
   })
   @ApiResponse({
-    status: 404,
-    description: 'Comprobante no encontrado.',
     status: 200,
     description: 'PDF generado correctamente.',
   })
   async generatePdf(@Param('id') id: string, @Res() res: Response) {
-    const invoice = await this.invoicesService.findOne(id);
-    if (!invoice) throw new Error('Invoice not found');
+    const invoice: Invoice | null = await this.invoicesService.findOne(id);
 
-    const doc = new PDFDocument();
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    const doc: PDFKit.PDFDocument = new PDFDocument();
+
     res.setHeader('Content-Type', 'application/pdf');
+
     res.setHeader(
       'Content-Disposition',
       `attachment; filename=remito-${id}.pdf`,
@@ -204,27 +208,34 @@ export class InvoicesController {
 
     doc.pipe(res);
 
-    // Header
-    doc.fontSize(20).text('REMITO - BUENA VIDA', { align: 'center' });
+    doc.fontSize(20).text('REMITO - BUENA VIDA', {
+      align: 'center',
+    });
+
     doc.moveDown();
 
-    // Invoice details
     doc.fontSize(12).text(`Número de Remito: ${invoice.id}`, 50, 100);
+
     doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 50, 120);
+
     doc.text(`Tipo: ${invoice.type}`, 50, 140);
+
     doc.moveDown();
 
-    // Client info
     if (invoice.order?.client?.user) {
       const user = invoice.order.client.user;
+
       doc.text(`Cliente: ${user.firstname} ${user.lastname}`, 50, 180);
+
       doc.text(`Email: ${user.email}`, 50, 200);
     }
+
     doc.moveDown();
 
-    // Products table
     doc.text('Productos:', 50, 240);
+
     let y = 260;
+
     if (invoice.order?.items) {
       invoice.order.items.forEach((item, index) => {
         doc.text(
@@ -232,13 +243,16 @@ export class InvoicesController {
           50,
           y,
         );
+
         y += 20;
       });
     }
 
-    // Total
     doc.moveDown();
-    doc.fontSize(14).text(`Total: $${invoice.total}`, { align: 'right' });
+
+    doc.fontSize(14).text(`Total: $${invoice.total}`, {
+      align: 'right',
+    });
 
     doc.end();
   }

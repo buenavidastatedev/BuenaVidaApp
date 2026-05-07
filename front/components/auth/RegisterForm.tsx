@@ -1,5 +1,7 @@
 "use client";
 
+"use client";
+
 import { API_URL } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -12,8 +14,10 @@ type FormState = {
 
 export default function RegisterForm() {
   const router = useRouter();
+
   const [role, setRole] = useState<string>("");
   const [show, setShow] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState<FormState>({
     name: "",
@@ -22,64 +26,117 @@ export default function RegisterForm() {
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
 
-    setForm({
-      ...form,
-      [type === "email" ? "email" : type === "password" ? "password" : name]:
-        value,
-    });
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const mapRole = (role: string) => {
     switch (role) {
       case "owner":
         return "owner";
+
       case "winery":
         return "winery";
+
       case "seller":
         return "seller";
+
       default:
         return "client";
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const validateForm = () => {
+    if (!form.name.trim()) {
+      alert("El nombre es obligatorio");
+      return false;
+    }
+
+    if (!form.email.trim()) {
+      alert("El email es obligatorio");
+      return false;
+    }
+
+    if (!form.password.trim()) {
+      alert("La contraseña es obligatoria");
+      return false;
+    }
+
+    if (form.password.length < 6) {
+      alert("La contraseña debe tener al menos 6 caracteres");
+      return false;
+    }
 
     if (!role) {
       alert("Seleccioná un rol");
-      return;
+      return false;
     }
 
+    const validRoles = ["owner", "winery", "seller", "client"];
+
+    if (!validRoles.includes(role)) {
+      alert("Rol inválido");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!validateForm()) return;
+
     try {
+      setLoading(true);
+
+      const payload = {
+        email: form.email.trim(),
+        firstname: form.name.trim(),
+        password: form.password,
+        role: mapRole(role),
+      };
+
+      console.log("REGISTER PAYLOAD:", payload);
+
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: form.email,
-          firstname: form.name,
-          password: form.password,
-          role,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
 
-      if (!res.ok) throw new Error(data.message);
+      console.log("REGISTER RESPONSE:", data);
+
+      if (!res.ok) {
+        if (Array.isArray(data.message)) {
+          throw new Error(data.message.join(", "));
+        }
+
+        throw new Error(data.message || "Error al registrarse");
+      }
 
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
 
       router.push(`/dashboard/${data.user.role}`);
     } catch (error: unknown) {
+      console.error(error);
+
       if (error instanceof Error) {
         alert(error.message);
       } else {
         alert("Error al registrarse");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -196,7 +253,10 @@ export default function RegisterForm() {
               <button
                 key={r.value}
                 type="button"
-                onClick={() => setRole(r.value)}
+                onClick={() => {
+                  console.log("ROL SELECCIONADO:", r.value);
+                  setRole(r.value);
+                }}
                 className={`p-3 border rounded-lg text-sm font-medium transition
                   ${
                     role === r.value
@@ -213,10 +273,14 @@ export default function RegisterForm() {
         {/* SUBMIT */}
         <button
           type="submit"
-          className="w-full bg-primary text-white font-bold py-4 rounded-lg hover:bg-primary-container transition-all flex items-center justify-center gap-2"
+          disabled={loading}
+          className="w-full bg-primary text-white font-bold py-4 rounded-lg hover:bg-primary-container transition-all flex items-center justify-center gap-2 disabled:opacity-60"
         >
-          Crear Cuenta
-          <span className="material-symbols-outlined">arrow_forward</span>
+          {loading ? "Creando cuenta..." : "Crear Cuenta"}
+
+          {!loading && (
+            <span className="material-symbols-outlined">arrow_forward</span>
+          )}
         </button>
 
         {/* FOOTER */}
@@ -224,6 +288,7 @@ export default function RegisterForm() {
           <p className="text-center text-sm text-on-surface-variant">
             ¿Ya tienes cuenta?{" "}
             <button
+              type="button"
               onClick={() => router.push("/login")}
               className="font-bold text-primary hover:text-primary-container transition-colors"
             >

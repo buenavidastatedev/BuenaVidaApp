@@ -70,7 +70,6 @@ export class ProductsController {
     summary: 'Listar productos',
     description:
       'Obtiene todos los productos con su bodega y registros de stock asociados. Requiere usuario autenticado.',
-      'Obtiene todos los productos con su bodega y registros de stock asociados. Soporta paginación.',
   })
   @ApiResponse({
     status: 200,
@@ -100,8 +99,6 @@ export class ProductsController {
     status: 403,
     description: 'Acceso denegado por rol.',
   })
-  findAll() {
-    return this.productsService.findAll();
   findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
@@ -224,10 +221,7 @@ export class ProductsController {
     status: 404,
     description: 'Producto o bodega no encontrada.',
   })
-  update(
-    @Param('id') id: string,
-    @Body() updateProductDto: UpdateProductDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productsService.update(id, updateProductDto);
   }
 

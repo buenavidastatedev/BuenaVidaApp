@@ -94,10 +94,6 @@ export class ClientsController {
     status: 403,
     description: 'Acceso denegado por rol.',
   })
-  findAll() {
-    return this.clientsService.findAll();
-  }
-
   @Roles(UserRole.OWNER, UserRole.SELLER, UserRole.CLIENT)
   findAll(
     @Query('page') page: string = '1',
