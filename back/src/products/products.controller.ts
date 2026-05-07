@@ -10,6 +10,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiOperation,
@@ -24,25 +25,35 @@ import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
-import { Public } from '../auth/decorators/auth.decorators';
+import { Roles } from '../auth/decorators/auth.decorators';
+import { UserRole } from '../users/enums/user.enum';
 
 @ApiTags('Products')
+@ApiBearerAuth()
 @Controller('products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
-  @Public()
+  @Roles(UserRole.OWNER, UserRole.WINERY)
   @Post()
   @ApiOperation({
     summary: 'Crear producto/vino',
     description:
-      'Crea un producto asociado a una bodega. El stock se maneja desde el módulo Stock.',
+      'Crea un producto asociado a una bodega. El stock se maneja desde el módulo Stock. Requiere rol OWNER o WINERY.',
   })
   @ApiBody({ type: CreateProductDto })
   @ApiResponse({
     status: 201,
     description: 'Producto creado correctamente.',
     type: Product,
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
   })
   @ApiResponse({
     status: 404,
@@ -52,27 +63,36 @@ export class ProductsController {
     return this.productsService.create(createProductDto);
   }
 
-  @Public()
+  @Roles(UserRole.OWNER, UserRole.WINERY, UserRole.SELLER, UserRole.CLIENT)
   @Get()
   @ApiOperation({
     summary: 'Listar productos',
     description:
-      'Obtiene todos los productos con su bodega y registros de stock asociados.',
+      'Obtiene todos los productos con su bodega y registros de stock asociados. Requiere usuario autenticado.',
   })
   @ApiResponse({
     status: 200,
     description: 'Lista de productos obtenida correctamente.',
     type: [Product],
   })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
   findAll() {
     return this.productsService.findAll();
   }
 
-  @Public()
+  @Roles(UserRole.OWNER, UserRole.WINERY, UserRole.SELLER, UserRole.CLIENT)
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener producto por ID',
-    description: 'Busca un producto específico por su ID.',
+    description:
+      'Busca un producto específico por su ID. Requiere usuario autenticado.',
   })
   @ApiParam({
     name: 'id',
@@ -85,6 +105,14 @@ export class ProductsController {
     type: Product,
   })
   @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
+  @ApiResponse({
     status: 404,
     description: 'Producto no encontrado.',
   })
@@ -92,13 +120,13 @@ export class ProductsController {
     return this.productsService.findOne(id);
   }
 
-  @Public()
+  @Roles(UserRole.OWNER, UserRole.WINERY)
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'Subir imagen de producto',
     description:
-      'Sube una imagen del producto/vino a Cloudinary y guarda la URL en imageUrl.',
+      'Sube una imagen del producto/vino a Cloudinary y guarda la URL en imageUrl. Requiere rol OWNER o WINERY.',
   })
   @ApiParam({
     name: 'id',
@@ -124,6 +152,14 @@ export class ProductsController {
     type: Product,
   })
   @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
+  @ApiResponse({
     status: 404,
     description: 'Producto no encontrado.',
   })
@@ -134,12 +170,12 @@ export class ProductsController {
     return this.productsService.uploadImage(id, file);
   }
 
-  @Public()
+  @Roles(UserRole.OWNER, UserRole.WINERY)
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar producto',
     description:
-      'Actualiza datos del producto. También permite cambiar la bodega asociada.',
+      'Actualiza datos del producto. También permite cambiar la bodega asociada. Requiere rol OWNER o WINERY.',
   })
   @ApiParam({
     name: 'id',
@@ -153,6 +189,14 @@ export class ProductsController {
     type: Product,
   })
   @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
+  })
+  @ApiResponse({
     status: 404,
     description: 'Producto o bodega no encontrada.',
   })
@@ -163,11 +207,11 @@ export class ProductsController {
     return this.productsService.update(id, updateProductDto);
   }
 
-  @Public()
+  @Roles(UserRole.OWNER, UserRole.WINERY)
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar producto',
-    description: 'Elimina un producto por ID.',
+    description: 'Elimina un producto por ID. Requiere rol OWNER o WINERY.',
   })
   @ApiParam({
     name: 'id',
@@ -183,6 +227,14 @@ export class ProductsController {
           'Product with id 75f4e79f-2178-4ef1-89c2-b2547f09e6f0 deleted successfully',
       },
     },
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'No autorizado. Token inválido o ausente.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Acceso denegado por rol.',
   })
   @ApiResponse({
     status: 404,
