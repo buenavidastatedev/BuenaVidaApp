@@ -4,15 +4,27 @@ export const API_URL =
 const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 
+/* =========================
+   STORAGE HELPERS
+========================= */
+
 function getStorageWithToken() {
   if (typeof window === "undefined") return null;
-  if (localStorage.getItem(ACCESS_TOKEN_KEY)) return localStorage;
-  if (sessionStorage.getItem(ACCESS_TOKEN_KEY)) return sessionStorage;
+
+  if (localStorage.getItem(ACCESS_TOKEN_KEY)) {
+    return localStorage;
+  }
+
+  if (sessionStorage.getItem(ACCESS_TOKEN_KEY)) {
+    return sessionStorage;
+  }
+
   return null;
 }
 
 function getToken() {
   if (typeof window === "undefined") return null;
+
   return (
     localStorage.getItem(ACCESS_TOKEN_KEY) ||
     sessionStorage.getItem(ACCESS_TOKEN_KEY) ||
@@ -20,7 +32,7 @@ function getToken() {
   );
 }
 
-function saveTokens(
+export function saveTokens(
   accessToken: string,
   refreshToken: string,
   remember = true,
@@ -28,15 +40,17 @@ function saveTokens(
   if (typeof window === "undefined") return;
 
   const storage = remember ? localStorage : sessionStorage;
+
   storage.setItem(ACCESS_TOKEN_KEY, accessToken);
   storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
 }
 
-function clearTokens() {
+export function clearTokens() {
   if (typeof window === "undefined") return;
 
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+
   sessionStorage.removeItem(ACCESS_TOKEN_KEY);
   sessionStorage.removeItem(REFRESH_TOKEN_KEY);
 }
@@ -48,13 +62,17 @@ function clearTokens() {
 export async function loginRequest(data: { email: string; password: string }) {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+    },
     body: JSON.stringify(data),
   });
 
   const result = await res.json();
 
-  if (!res.ok) throw new Error(result.message || "Error en login");
+  if (!res.ok) {
+    throw new Error(result.message || "Error en login");
+  }
 
   return result;
 }
@@ -75,25 +93,36 @@ export async function logoutRequest() {
     },
   });
 
-  clearTokens();
-
   if (!res.ok) {
     const result = await res.json().catch(() => null);
+
     throw new Error(result?.message || "Error al cerrar sesión");
   }
+
+  clearTokens();
 
   return res.json();
 }
 
 /* =========================
-   BASE FETCH (NO TOCAR)
+   BASE FETCH
 ========================= */
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = getToken();
 
-  if (!token) throw new Error("No hay sesión activa");
+  // 🚨 no token
+  if (!token) {
+    clearTokens();
 
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
+
+    throw new Error("No hay sesión activa");
+  }
+
+  // 🚀 request principal
   let res = await fetch(url, {
     ...options,
     headers: {
@@ -104,35 +133,51 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     cache: "no-store",
   });
 
-  // 🔁 REFRESH TOKEN AUTOMÁTICO
+  // 🔁 refresh automático
   if (res.status === 401 && typeof window !== "undefined") {
     const refreshToken =
       localStorage.getItem(REFRESH_TOKEN_KEY) ||
       sessionStorage.getItem(REFRESH_TOKEN_KEY);
+
+    // 🚨 no refresh token
     if (!refreshToken) {
       clearTokens();
+
       window.location.href = "/login";
-      return;
+
+      throw new Error("Refresh token inexistente");
     }
 
+    // 🔁 refresh request
     const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        refreshToken,
+      }),
     });
 
+    // 🚨 refresh inválido
     if (!refreshRes.ok) {
       clearTokens();
+
       window.location.href = "/login";
-      return;
+
+      throw new Error("Sesión expirada");
     }
 
     const newTokens = await refreshRes.json();
 
+    // 💾 guardar nuevos tokens
     const storage = getStorageWithToken() || localStorage;
+
     storage.setItem(ACCESS_TOKEN_KEY, newTokens.accessToken);
+
     storage.setItem(REFRESH_TOKEN_KEY, newTokens.refreshToken);
 
+    // 🔁 retry original request
     res = await fetch(url, {
       ...options,
       headers: {
@@ -144,9 +189,14 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     });
   }
 
-  const result = await res.json();
+  // ⚠️ respuestas vacías
+  const text = await res.text();
 
-  if (!res.ok) throw new Error(result.message || "Error en request");
+  const result = text ? JSON.parse(text) : null;
+
+  if (!res.ok) {
+    throw new Error(result?.message || "Error en request");
+  }
 
   return result;
 }
@@ -219,7 +269,10 @@ export async function getClientById(id: string) {
 
 export async function createOrder(data: {
   clientId: string;
-  items: { productId: string; quantity: number }[];
+  items: {
+    productId: string;
+    quantity: number;
+  }[];
 }) {
   return fetchWithAuth(`${API_URL}/orders`, {
     method: "POST",
