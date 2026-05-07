@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -88,6 +89,32 @@ export class OrdersController {
   }
 
   @Roles(UserRole.OWNER, UserRole.SELLER, UserRole.CLIENT)
+    schema: {
+      example: {
+        orders: [
+          {
+            id: 'uuid',
+            total: 25000,
+            status: 'pending',
+            client: { user: { name: 'Cliente' } },
+          },
+        ],
+        total: 50,
+        page: 1,
+        limit: 10,
+        totalPages: 5,
+      },
+    },
+  })
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    return this.ordersService.findAll(pageNum, limitNum);
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener orden por ID',

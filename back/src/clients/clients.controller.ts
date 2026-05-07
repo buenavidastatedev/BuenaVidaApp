@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -69,7 +70,21 @@ export class ClientsController {
   @ApiResponse({
     status: 200,
     description: 'Lista de clientes obtenida correctamente.',
-    type: [Client],
+    schema: {
+      example: {
+        clients: [
+          {
+            id: 'uuid',
+            user: { name: 'Cliente' },
+            seller: { name: 'Vendedor' },
+          },
+        ],
+        total: 100,
+        page: 1,
+        limit: 10,
+        totalPages: 10,
+      },
+    },
   })
   @ApiResponse({
     status: 401,
@@ -84,6 +99,15 @@ export class ClientsController {
   }
 
   @Roles(UserRole.OWNER, UserRole.SELLER, UserRole.CLIENT)
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    return this.clientsService.findAll(pageNum, limitNum);
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener cliente por ID',

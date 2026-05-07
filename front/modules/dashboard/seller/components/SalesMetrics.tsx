@@ -1,31 +1,61 @@
-// src/modules/dashboard/seller/components/SalesMetrics.tsx
+"use client";
+
+import { useEffect, useState } from "react";
+
+interface Summary {
+  totalSales: number;
+  ordersCount: number;
+  productsCount: number;
+  lowStockCount: number;
+  avgOrderValue: number;
+  pendingOrders: number;
+}
 
 export default function SalesMetrics() {
+  const [summary, setSummary] = useState<Summary | null>(null);
+
+  useEffect(() => {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/summary`)
+      .then((res) => res.json())
+      .then((data) => setSummary(data))
+      .catch((err) => console.error(err));
+  }, []);
+
+  if (!summary) return <div>Cargando...</div>;
+
   return (
     <div className="bg-white rounded-xl p-6 shadow-sm border border-zinc-200">
       <div className="flex justify-between mb-8">
         <div>
-          <h2 className="font-bold text-lg">Progreso de Objetivos Mensuales</h2>
-
-          <p className="text-sm text-zinc-500">Octubre 2023</p>
+          <h2 className="font-bold text-lg">Métricas de Ventas</h2>
+          <p className="text-sm text-zinc-500">Resumen General</p>
         </div>
 
         <div className="text-right">
-          <p className="text-3xl font-black">72%</p>
+          <p className="text-3xl font-black">${summary.totalSales}</p>
           <p className="text-xs text-green-600 font-bold">
-            +$1.2M para el objetivo
+            {summary.ordersCount} órdenes
           </p>
         </div>
       </div>
 
-      <div className="h-24 bg-zinc-100 rounded-lg flex items-end gap-1 px-2">
-        {[30, 45, 60, 40, 75, 85, 65, 92].map((h, i) => (
-          <div
-            key={i}
-            className="flex-1 bg-pink-500 rounded-t"
-            style={{ height: `${h}%` }}
-          />
-        ))}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="text-center">
+          <p className="text-2xl font-bold">{summary.productsCount}</p>
+          <p className="text-sm text-zinc-500">Productos</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold">{summary.lowStockCount}</p>
+          <p className="text-sm text-zinc-500">Stock Bajo</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold">${summary.avgOrderValue}</p>
+          <p className="text-sm text-zinc-500">Promedio Orden</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold">{summary.pendingOrders}</p>
+          <p className="text-sm text-zinc-500">Órdenes Pendientes</p>
+        </div>
       </div>
     </div>
   );

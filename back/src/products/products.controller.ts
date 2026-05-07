@@ -8,6 +8,7 @@ import {
   Delete,
   UseInterceptors,
   UploadedFile,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -69,11 +70,27 @@ export class ProductsController {
     summary: 'Listar productos',
     description:
       'Obtiene todos los productos con su bodega y registros de stock asociados. Requiere usuario autenticado.',
+      'Obtiene todos los productos con su bodega y registros de stock asociados. Soporta paginación.',
   })
   @ApiResponse({
     status: 200,
     description: 'Lista de productos obtenida correctamente.',
-    type: [Product],
+    schema: {
+      example: {
+        products: [
+          {
+            id: 'uuid',
+            name: 'Malbec Reserva',
+            price: 12500.5,
+            winery: { name: 'Catena Zapata' },
+          },
+        ],
+        total: 25,
+        page: 1,
+        limit: 10,
+        totalPages: 3,
+      },
+    },
   })
   @ApiResponse({
     status: 401,
@@ -85,6 +102,13 @@ export class ProductsController {
   })
   findAll() {
     return this.productsService.findAll();
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    return this.productsService.findAll(pageNum, limitNum);
   }
 
   @Roles(UserRole.OWNER, UserRole.WINERY, UserRole.SELLER, UserRole.CLIENT)

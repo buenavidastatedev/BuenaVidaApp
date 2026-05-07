@@ -1,9 +1,9 @@
 import { ReactNode } from "react";
 import { notFound } from "next/navigation";
-import Navbar from "@/components/landing/Navbar";
+import DashboardNavbar from "@/components/dashboard/DashboardNavbar";
+import DashboardFooter from "@/components/dashboard/DashboardFooter";
 
 import { navigationByRole } from "@/config/navigation";
-import Footer from "@/components/layout/Footer";
 
 type Props = {
   children: ReactNode;
@@ -24,22 +24,19 @@ export default async function DashboardRoleLayout({ children, params }: Props) {
   const navConfig = navigationByRole[role as keyof typeof navigationByRole];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* NAVBAR */}
-      <Navbar
+    <div className="min-h-screen bg-background text-on-background flex flex-col">
+      <DashboardNavbar
         links={navConfig.links}
         ctaLabel={navConfig.ctaLabel}
         ctaHref={navConfig.ctaHref}
         showLogout={navConfig.showLogout}
       />
 
-      {/* CONTENIDO */}
-      <main className="flex-1 max-w-7xl mx-auto px-4 py-8 space-y-8 pt-20">
+      <main className="flex-1 max-w-7xl mx-auto px-4 py-8 pt-24">
         {children}
       </main>
 
-      {/* FOOTER */}
-      <Footer />
+      <DashboardFooter />
     </div>
   );
 }

@@ -6,7 +6,10 @@ import {
   Patch,
   Param,
   Delete,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
+import * as PDFDocument from 'pdfkit';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -153,10 +156,7 @@ export class InvoicesController {
     status: 409,
     description: 'La orden ya tiene otro comprobante asociado.',
   })
-  update(
-    @Param('id') id: string,
-    @Body() updateInvoiceDto: UpdateInvoiceDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateInvoiceDto: UpdateInvoiceDto) {
     return this.invoicesService.update(id, updateInvoiceDto);
   }
 
@@ -171,15 +171,11 @@ export class InvoicesController {
     description: 'ID UUID del comprobante.',
     example: 'd24e957f-2f46-43b7-a7ed-296a72ef3a4e',
   })
-  @ApiResponse({
-    status: 200,
-    description: 'Comprobante eliminado correctamente.',
-    schema: {
-      example: {
-        message:
-          'Invoice with id d24e957f-2f46-43b7-a7ed-296a72ef3a4e deleted successfully',
-      },
-    },
+  @Get(':id/pdf')
+  @ApiOperation({
+    summary: 'Generar PDF del comprobante',
+    description:
+      'Genera un PDF detallado del remito o presupuesto con información del cliente y productos.',
   })
   @ApiResponse({
     status: 401,
@@ -192,8 +188,58 @@ export class InvoicesController {
   @ApiResponse({
     status: 404,
     description: 'Comprobante no encontrado.',
+    status: 200,
+    description: 'PDF generado correctamente.',
   })
-  remove(@Param('id') id: string) {
-    return this.invoicesService.remove(id);
+  async generatePdf(@Param('id') id: string, @Res() res: Response) {
+    const invoice = await this.invoicesService.findOne(id);
+    if (!invoice) throw new Error('Invoice not found');
+
+    const doc = new PDFDocument();
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=remito-${id}.pdf`,
+    );
+
+    doc.pipe(res);
+
+    // Header
+    doc.fontSize(20).text('REMITO - BUENA VIDA', { align: 'center' });
+    doc.moveDown();
+
+    // Invoice details
+    doc.fontSize(12).text(`Número de Remito: ${invoice.id}`, 50, 100);
+    doc.text(`Fecha: ${new Date().toLocaleDateString()}`, 50, 120);
+    doc.text(`Tipo: ${invoice.type}`, 50, 140);
+    doc.moveDown();
+
+    // Client info
+    if (invoice.order?.client?.user) {
+      const user = invoice.order.client.user;
+      doc.text(`Cliente: ${user.firstname} ${user.lastname}`, 50, 180);
+      doc.text(`Email: ${user.email}`, 50, 200);
+    }
+    doc.moveDown();
+
+    // Products table
+    doc.text('Productos:', 50, 240);
+    let y = 260;
+    if (invoice.order?.items) {
+      invoice.order.items.forEach((item, index) => {
+        doc.text(
+          `${index + 1}. ${item.product?.name || 'Producto'} - Cantidad: ${item.quantity} - Precio: $${item.price}`,
+          50,
+          y,
+        );
+        y += 20;
+      });
+    }
+
+    // Total
+    doc.moveDown();
+    doc.fontSize(14).text(`Total: $${invoice.total}`, { align: 'right' });
+
+    doc.end();
   }
 }

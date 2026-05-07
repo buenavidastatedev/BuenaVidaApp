@@ -1,7 +1,45 @@
-const API_URL = "http://localhost:3003/api";
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3003/api";
 
-const TOKEN_KEY = "accessToken";
-const REFRESH_KEY = "refreshToken";
+const ACCESS_TOKEN_KEY = "accessToken";
+const REFRESH_TOKEN_KEY = "refreshToken";
+
+function getStorageWithToken() {
+  if (typeof window === "undefined") return null;
+  if (localStorage.getItem(ACCESS_TOKEN_KEY)) return localStorage;
+  if (sessionStorage.getItem(ACCESS_TOKEN_KEY)) return sessionStorage;
+  return null;
+}
+
+function getToken() {
+  if (typeof window === "undefined") return null;
+  return (
+    localStorage.getItem(ACCESS_TOKEN_KEY) ||
+    sessionStorage.getItem(ACCESS_TOKEN_KEY) ||
+    null
+  );
+}
+
+function saveTokens(
+  accessToken: string,
+  refreshToken: string,
+  remember = true,
+) {
+  if (typeof window === "undefined") return;
+
+  const storage = remember ? localStorage : sessionStorage;
+  storage.setItem(ACCESS_TOKEN_KEY, accessToken);
+  storage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+}
+
+function clearTokens() {
+  if (typeof window === "undefined") return;
+
+  localStorage.removeItem(ACCESS_TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
+  sessionStorage.removeItem(ACCESS_TOKEN_KEY);
+  sessionStorage.removeItem(REFRESH_TOKEN_KEY);
+}
 
 /* =========================
    AUTH
@@ -18,12 +56,33 @@ export async function loginRequest(data: { email: string; password: string }) {
 
   if (!res.ok) throw new Error(result.message || "Error en login");
 
-  if (typeof window !== "undefined") {
-    localStorage.setItem(TOKEN_KEY, result.accessToken);
-    localStorage.setItem(REFRESH_KEY, result.refreshToken);
+  return result;
+}
+
+export async function logoutRequest() {
+  const token = getToken();
+
+  if (!token) {
+    clearTokens();
+    throw new Error("No hay sesión activa");
   }
 
-  return result;
+  const res = await fetch(`${API_URL}/auth/logout`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  clearTokens();
+
+  if (!res.ok) {
+    const result = await res.json().catch(() => null);
+    throw new Error(result?.message || "Error al cerrar sesión");
+  }
+
+  return res.json();
 }
 
 /* =========================
@@ -31,8 +90,7 @@ export async function loginRequest(data: { email: string; password: string }) {
 ========================= */
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem(TOKEN_KEY) : null;
+  const token = getToken();
 
   if (!token) throw new Error("No hay sesión activa");
 
@@ -48,10 +106,11 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
   // 🔁 REFRESH TOKEN AUTOMÁTICO
   if (res.status === 401 && typeof window !== "undefined") {
-    const refreshToken = localStorage.getItem(REFRESH_KEY);
-
+    const refreshToken =
+      localStorage.getItem(REFRESH_TOKEN_KEY) ||
+      sessionStorage.getItem(REFRESH_TOKEN_KEY);
     if (!refreshToken) {
-      localStorage.clear();
+      clearTokens();
       window.location.href = "/login";
       return;
     }
@@ -63,15 +122,16 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     });
 
     if (!refreshRes.ok) {
-      localStorage.clear();
+      clearTokens();
       window.location.href = "/login";
       return;
     }
 
     const newTokens = await refreshRes.json();
 
-    localStorage.setItem(TOKEN_KEY, newTokens.accessToken);
-    localStorage.setItem(REFRESH_KEY, newTokens.refreshToken);
+    const storage = getStorageWithToken() || localStorage;
+    storage.setItem(ACCESS_TOKEN_KEY, newTokens.accessToken);
+    storage.setItem(REFRESH_TOKEN_KEY, newTokens.refreshToken);
 
     res = await fetch(url, {
       ...options,

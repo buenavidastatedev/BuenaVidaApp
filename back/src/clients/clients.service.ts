@@ -53,13 +53,20 @@ export class ClientsService {
     return await this.clientRepository.save(client);
   }
 
-  async findAll(): Promise<Client[]> {
-    return await this.clientRepository.find({
+  async findAll(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ clients: Client[]; total: number }> {
+    const [clients, total] = await this.clientRepository.findAndCount({
       relations: ['user', 'seller', 'orders'],
       order: {
         createdAt: 'DESC',
       },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return { clients, total };
   }
 
   async findOne(id: string): Promise<Client> {
