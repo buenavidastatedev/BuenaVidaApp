@@ -107,10 +107,33 @@ export class ProductsService {
   async remove(id: string): Promise<{ message: string }> {
     const product = await this.findOne(id);
 
-    await this.productRepository.remove(product);
+    await this.productRepository.softDelete(product.id);
 
     return {
       message: `Product with id ${id} deleted successfully`,
+    };
+  }
+
+  async restore(id: string): Promise<{ message: string }> {
+    const product = await this.productRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+
+    if (!product) {
+      throw new NotFoundException(`Product with id ${id} not found`);
+    }
+
+    if (!product.deletedAt) {
+      return {
+        message: `Product with id ${id} is not deleted`,
+      };
+    }
+
+    await this.productRepository.restore(id);
+
+    return {
+      message: `Product with id ${id} restored successfully`,
     };
   }
 

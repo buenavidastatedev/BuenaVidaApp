@@ -34,7 +34,9 @@ export class SellersService {
     }
 
     if (user.seller) {
-      throw new ConflictException(`User with id ${userId} already has a seller profile`);
+      throw new ConflictException(
+        `User with id ${userId} already has a seller profile`,
+      );
     }
 
     const seller = this.sellerRepository.create({
@@ -76,7 +78,9 @@ export class SellersService {
       });
 
       if (!user) {
-        throw new NotFoundException(`User with id ${updateSellerDto.userId} not found`);
+        throw new NotFoundException(
+          `User with id ${updateSellerDto.userId} not found`,
+        );
       }
 
       if (user.seller && user.seller.id !== seller.id) {
@@ -94,10 +98,33 @@ export class SellersService {
   async remove(id: string): Promise<{ message: string }> {
     const seller = await this.findOne(id);
 
-    await this.sellerRepository.remove(seller);
+    await this.sellerRepository.softDelete(seller.id);
 
     return {
       message: `Seller with id ${id} deleted successfully`,
+    };
+  }
+
+  async restore(id: string): Promise<{ message: string }> {
+    const seller = await this.sellerRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+
+    if (!seller) {
+      throw new NotFoundException(`Seller with id ${id} not found`);
+    }
+
+    if (!seller.deletedAt) {
+      return {
+        message: `Seller with id ${id} is not deleted`,
+      };
+    }
+
+    await this.sellerRepository.restore(id);
+
+    return {
+      message: `Seller with id ${id} restored successfully`,
     };
   }
 }

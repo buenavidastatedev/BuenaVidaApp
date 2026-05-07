@@ -1,6 +1,7 @@
 import {
   Column,
   CreateDateColumn,
+  DeleteDateColumn,
   Entity,
   Index,
   OneToOne,
@@ -106,6 +107,10 @@ export class User {
   })
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @ApiHideProperty()
+  @DeleteDateColumn()
+  deletedAt!: Date | null;
 
   @ApiHideProperty()
   @OneToOne(() => Seller, (seller) => seller.user)

@@ -60,12 +60,12 @@ export class ClientsController {
     return this.clientsService.create(createClientDto);
   }
 
-  @Roles(UserRole.OWNER, UserRole.SELLER)
+  @Roles(UserRole.OWNER, UserRole.SELLER, UserRole.CLIENT)
   @Get()
   @ApiOperation({
     summary: 'Listar clientes',
     description:
-      'Obtiene todos los clientes con sus relaciones: usuario, vendedor y pedidos. Requiere rol OWNER o SELLER.',
+      'Obtiene todos los clientes con sus relaciones: usuario, vendedor y pedidos. Requiere rol OWNER, SELLER o CLIENT.',
   })
   @ApiResponse({
     status: 200,
@@ -94,16 +94,17 @@ export class ClientsController {
     status: 403,
     description: 'Acceso denegado por rol.',
   })
-  @Roles(UserRole.OWNER, UserRole.SELLER, UserRole.CLIENT)
   findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
   ) {
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 10;
+
     return this.clientsService.findAll(pageNum, limitNum);
   }
 
+  @Roles(UserRole.OWNER, UserRole.SELLER, UserRole.CLIENT)
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener cliente por ID',
@@ -174,7 +175,8 @@ export class ClientsController {
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar cliente',
-    description: 'Elimina un cliente por ID. Requiere rol OWNER.',
+    description:
+      'Realiza un soft delete de un cliente por ID. Requiere rol OWNER.',
   })
   @ApiParam({
     name: 'id',
@@ -205,5 +207,35 @@ export class ClientsController {
   })
   remove(@Param('id') id: string) {
     return this.clientsService.remove(id);
+  }
+
+  @Roles(UserRole.OWNER)
+  @Patch(':id/restore')
+  @ApiOperation({
+    summary: 'Restaurar cliente eliminado',
+    description:
+      'Restaura un cliente eliminado con soft delete. Requiere rol OWNER.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID UUID del cliente',
+    example: '7dff0d4d-53e8-4b67-9a6f-899a37f2b6b1',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Cliente restaurado correctamente.',
+    schema: {
+      example: {
+        message:
+          'Client with id 7dff0d4d-53e8-4b67-9a6f-899a37f2b6b1 restored successfully',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Cliente no encontrado.',
+  })
+  restore(@Param('id') id: string) {
+    return this.clientsService.restore(id);
   }
 }

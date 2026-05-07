@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Express } from 'express';
 
 import { Winery } from './entities/winery.entity';
 import { CreateWineryDto } from './dto/create-winery.dto';
@@ -16,8 +17,10 @@ export class WineriesService {
   constructor(
     @InjectRepository(Winery)
     private readonly wineryRepository: Repository<Winery>,
+
     private readonly cloudinaryService: CloudinaryService,
   ) {}
+
   async create(createWineryDto: CreateWineryDto): Promise<Winery> {
     const exists = await this.wineryRepository.findOne({
       where: { name: createWineryDto.name },
@@ -28,6 +31,7 @@ export class WineriesService {
     }
 
     const winery = this.wineryRepository.create(createWineryDto);
+
     return this.wineryRepository.save(winery);
   }
 
@@ -64,10 +68,33 @@ export class WineriesService {
   async remove(id: string): Promise<{ message: string }> {
     const winery = await this.findOne(id);
 
-    await this.wineryRepository.remove(winery);
+    await this.wineryRepository.softDelete(winery.id);
 
     return {
       message: `Winery with id ${id} deleted successfully`,
+    };
+  }
+
+  async restore(id: string): Promise<{ message: string }> {
+    const winery = await this.wineryRepository.findOne({
+      where: { id },
+      withDeleted: true,
+    });
+
+    if (!winery) {
+      throw new NotFoundException(`Winery with id ${id} not found`);
+    }
+
+    if (!winery.deletedAt) {
+      return {
+        message: `Winery with id ${id} is not deleted`,
+      };
+    }
+
+    await this.wineryRepository.restore(id);
+
+    return {
+      message: `Winery with id ${id} restored successfully`,
     };
   }
 
@@ -80,6 +107,7 @@ export class WineriesService {
 
     return await this.wineryRepository.save(winery);
   }
+
   async findProductsByWinery(id: string) {
     const winery = await this.wineryRepository.findOne({
       where: { id },

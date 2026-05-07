@@ -5,6 +5,7 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import { Product } from '../../products/entities/product.entity';
@@ -35,7 +36,7 @@ export class Winery {
   imageUrl!: string | null;
 
   @OneToMany(() => Seller, (seller) => seller.winery)
-  sellers: Seller[];
+  sellers!: Seller[];
 
   @Column({
     type: 'boolean',
@@ -51,4 +52,7 @@ export class Winery {
 
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }

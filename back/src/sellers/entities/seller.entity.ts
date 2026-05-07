@@ -6,6 +6,7 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import { User } from '../../users/entities/user.entity';
@@ -39,12 +40,15 @@ export class Seller {
   @OneToMany(() => Client, (client) => client.seller)
   clients!: Client[];
 
+  @OneToMany(() => Order, (order) => order.seller)
+  orders!: Order[];
+
   @CreateDateColumn()
   createdAt!: Date;
 
   @UpdateDateColumn()
   updatedAt!: Date;
 
-  @OneToMany(() => Order, (order) => order.seller)
-  orders!: Order[];
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }

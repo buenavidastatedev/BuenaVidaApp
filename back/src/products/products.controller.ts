@@ -37,106 +37,24 @@ export class ProductsController {
 
   @Roles(UserRole.OWNER, UserRole.WINERY)
   @Post()
-  @ApiOperation({
-    summary: 'Crear producto/vino',
-    description:
-      'Crea un producto asociado a una bodega. El stock se maneja desde el módulo Stock. Requiere rol OWNER o WINERY.',
-  })
-  @ApiBody({ type: CreateProductDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Producto creado correctamente.',
-    type: Product,
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Bodega no encontrada.',
-  })
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
   }
 
   @Roles(UserRole.OWNER, UserRole.WINERY, UserRole.SELLER, UserRole.CLIENT)
   @Get()
-  @ApiOperation({
-    summary: 'Listar productos',
-    description:
-      'Obtiene todos los productos con su bodega y registros de stock asociados. Requiere usuario autenticado.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Lista de productos obtenida correctamente.',
-    schema: {
-      example: {
-        products: [
-          {
-            id: 'uuid',
-            name: 'Malbec Reserva',
-            price: 12500.5,
-            winery: { name: 'Catena Zapata' },
-          },
-        ],
-        total: 25,
-        page: 1,
-        limit: 10,
-        totalPages: 3,
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
   findAll(
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '10',
   ) {
     const pageNum = parseInt(page, 10) || 1;
     const limitNum = parseInt(limit, 10) || 10;
+
     return this.productsService.findAll(pageNum, limitNum);
   }
 
   @Roles(UserRole.OWNER, UserRole.WINERY, UserRole.SELLER, UserRole.CLIENT)
   @Get(':id')
-  @ApiOperation({
-    summary: 'Obtener producto por ID',
-    description:
-      'Busca un producto específico por su ID. Requiere usuario autenticado.',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'ID UUID del producto',
-    example: '75f4e79f-2178-4ef1-89c2-b2547f09e6f0',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Producto encontrado correctamente.',
-    type: Product,
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Producto no encontrado.',
-  })
   findOne(@Param('id') id: string) {
     return this.productsService.findOne(id);
   }
@@ -144,16 +62,6 @@ export class ProductsController {
   @Roles(UserRole.OWNER, UserRole.WINERY)
   @Post(':id/image')
   @UseInterceptors(FileInterceptor('file'))
-  @ApiOperation({
-    summary: 'Subir imagen de producto',
-    description:
-      'Sube una imagen del producto/vino a Cloudinary y guarda la URL en imageUrl. Requiere rol OWNER o WINERY.',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'ID UUID del producto',
-    example: '75f4e79f-2178-4ef1-89c2-b2547f09e6f0',
-  })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -167,23 +75,6 @@ export class ProductsController {
       required: ['file'],
     },
   })
-  @ApiResponse({
-    status: 201,
-    description: 'Imagen subida correctamente.',
-    type: Product,
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Producto no encontrado.',
-  })
   uploadImage(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,
@@ -193,34 +84,6 @@ export class ProductsController {
 
   @Roles(UserRole.OWNER, UserRole.WINERY)
   @Patch(':id')
-  @ApiOperation({
-    summary: 'Actualizar producto',
-    description:
-      'Actualiza datos del producto. También permite cambiar la bodega asociada. Requiere rol OWNER o WINERY.',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'ID UUID del producto',
-    example: '75f4e79f-2178-4ef1-89c2-b2547f09e6f0',
-  })
-  @ApiBody({ type: UpdateProductDto })
-  @ApiResponse({
-    status: 200,
-    description: 'Producto actualizado correctamente.',
-    type: Product,
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Producto o bodega no encontrada.',
-  })
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productsService.update(id, updateProductDto);
   }
@@ -229,36 +92,21 @@ export class ProductsController {
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar producto',
-    description: 'Elimina un producto por ID. Requiere rol OWNER o WINERY.',
-  })
-  @ApiParam({
-    name: 'id',
-    description: 'ID UUID del producto',
-    example: '75f4e79f-2178-4ef1-89c2-b2547f09e6f0',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Producto eliminado correctamente.',
-    schema: {
-      example: {
-        message:
-          'Product with id 75f4e79f-2178-4ef1-89c2-b2547f09e6f0 deleted successfully',
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Producto no encontrado.',
+    description:
+      'Realiza un soft delete de un producto por ID. Requiere rol OWNER o WINERY.',
   })
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);
+  }
+
+  @Roles(UserRole.OWNER, UserRole.WINERY)
+  @Patch(':id/restore')
+  @ApiOperation({
+    summary: 'Restaurar producto eliminado',
+    description:
+      'Restaura un producto eliminado con soft delete. Requiere rol OWNER o WINERY.',
+  })
+  restore(@Param('id') id: string) {
+    return this.productsService.restore(id);
   }
 }

@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToOne,
+  DeleteDateColumn,
 } from 'typeorm';
 
 import { OrderItem } from '../../order-items/entities/order-item.entity';
@@ -26,9 +27,9 @@ export class Product {
   @Column({ type: 'numeric', precision: 10, scale: 2 })
   price!: number;
 
-    @Column({ type: 'varchar', nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   imageUrl!: string | null;
-  
+
   @OneToMany(() => Stock, (stock) => stock.product)
   stocks!: Stock[];
 
@@ -40,4 +41,7 @@ export class Product {
 
   @UpdateDateColumn()
   updatedAt!: Date;
+
+  @DeleteDateColumn()
+  deletedAt?: Date;
 }

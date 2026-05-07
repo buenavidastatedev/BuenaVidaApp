@@ -42,22 +42,6 @@ export class SellersController {
     description: 'Vendedor creado correctamente.',
     type: Seller,
   })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Usuario no encontrado.',
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'El usuario ya tiene un perfil de vendedor.',
-  })
   create(@Body() createSellerDto: CreateSellerDto) {
     return this.sellersService.create(createSellerDto);
   }
@@ -73,14 +57,6 @@ export class SellersController {
     status: 200,
     description: 'Lista de vendedores obtenida correctamente.',
     type: [Seller],
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
   })
   findAll() {
     return this.sellersService.findAll();
@@ -102,18 +78,6 @@ export class SellersController {
     status: 200,
     description: 'Vendedor encontrado correctamente.',
     type: Seller,
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Vendedor no encontrado.',
   })
   findOne(@Param('id') id: string) {
     return this.sellersService.findOne(id);
@@ -137,22 +101,6 @@ export class SellersController {
     description: 'Vendedor actualizado correctamente.',
     type: Seller,
   })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Vendedor o usuario no encontrado.',
-  })
-  @ApiResponse({
-    status: 409,
-    description: 'El usuario ya tiene un perfil de vendedor.',
-  })
   update(@Param('id') id: string, @Body() updateSellerDto: UpdateSellerDto) {
     return this.sellersService.update(id, updateSellerDto);
   }
@@ -161,7 +109,8 @@ export class SellersController {
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar vendedor',
-    description: 'Elimina un vendedor por ID. Requiere rol OWNER.',
+    description:
+      'Realiza un soft delete de un vendedor por ID. Requiere rol OWNER.',
   })
   @ApiParam({
     name: 'id',
@@ -178,19 +127,33 @@ export class SellersController {
       },
     },
   })
-  @ApiResponse({
-    status: 401,
-    description: 'No autorizado. Token inválido o ausente.',
-  })
-  @ApiResponse({
-    status: 403,
-    description: 'Acceso denegado por rol.',
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Vendedor no encontrado.',
-  })
   remove(@Param('id') id: string) {
     return this.sellersService.remove(id);
+  }
+
+  @Roles(UserRole.OWNER)
+  @Patch(':id/restore')
+  @ApiOperation({
+    summary: 'Restaurar vendedor eliminado',
+    description:
+      'Restaura un vendedor eliminado con soft delete. Requiere rol OWNER.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID UUID del vendedor',
+    example: '9f375f53-66f2-4a71-a1e3-11f9d17c987a',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Vendedor restaurado correctamente.',
+    schema: {
+      example: {
+        message:
+          'Seller with id 9f375f53-66f2-4a71-a1e3-11f9d17c987a restored successfully',
+      },
+    },
+  })
+  restore(@Param('id') id: string) {
+    return this.sellersService.restore(id);
   }
 }
