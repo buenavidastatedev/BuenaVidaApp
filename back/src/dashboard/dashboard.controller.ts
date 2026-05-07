@@ -84,7 +84,7 @@ export class DashboardController {
   @ApiOperation({
     summary: 'Liquidaciones por bodega',
     description:
-      'Agrupa ventas por bodega y calcula bruto, comisión, IVA y neto estimado.',
+      'Agrupa ventas por bodega y calcula bruto, comisión, IVA y neto estimado usando la configuración activa de liquidación.',
   })
   @ApiResponse({
     status: 200,
@@ -97,6 +97,10 @@ export class DashboardController {
           commission: 5000,
           iva: 19000,
           net: 76000,
+          config: {
+            commissionPercentage: 5,
+            ivaPercentage: 19,
+          },
         },
       ],
     },
