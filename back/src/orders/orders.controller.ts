@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -19,14 +20,12 @@ import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
-import { Public } from '../auth/decorators/auth.decorators';
 
 @ApiTags('Orders')
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  @Public()
   @Post()
   @ApiOperation({
     summary: 'Crear orden',
@@ -52,23 +51,41 @@ export class OrdersController {
     return this.ordersService.create(createOrderDto);
   }
 
-  @Public()
   @Get()
   @ApiOperation({
     summary: 'Listar órdenes',
     description:
-      'Obtiene todas las órdenes con cliente, items y productos asociados.',
+      'Obtiene todas las órdenes con cliente, items y productos asociados. Soporta paginación.',
   })
   @ApiResponse({
     status: 200,
     description: 'Lista de órdenes obtenida correctamente.',
-    type: [Order],
+    schema: {
+      example: {
+        orders: [
+          {
+            id: 'uuid',
+            total: 25000,
+            status: 'pending',
+            client: { user: { name: 'Cliente' } },
+          },
+        ],
+        total: 50,
+        page: 1,
+        limit: 10,
+        totalPages: 5,
+      },
+    },
   })
-  findAll() {
-    return this.ordersService.findAll();
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    return this.ordersService.findAll(pageNum, limitNum);
   }
 
-  @Public()
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener orden por ID',
@@ -92,7 +109,6 @@ export class OrdersController {
     return this.ordersService.findOne(id);
   }
 
-  @Public()
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar orden',
@@ -118,7 +134,6 @@ export class OrdersController {
     return this.ordersService.update(id, updateOrderDto);
   }
 
-  @Public()
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar orden',

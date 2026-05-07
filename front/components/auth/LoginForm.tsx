@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { loginRequest } from "@/lib/api";
+import { API_URL, loginRequest } from "@/lib/api";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -157,7 +157,7 @@ export default function LoginForm() {
           onClick={() => {
             setLoadingGoogle(true);
             window.location.assign(
-              `http://localhost:3003/api/auth/google${
+              `${API_URL}/auth/google${
                 selectedRole ? `?role=${selectedRole}` : ""
               }`,
             );

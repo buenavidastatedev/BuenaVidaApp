@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -19,14 +20,12 @@ import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { UpdateClientDto } from './dto/update-client.dto';
 import { Client } from './entities/client.entity';
-import { Public } from '../auth/decorators/auth.decorators';
 
 @ApiTags('Clients')
 @Controller('clients')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
-  @Public()
   @Post()
   @ApiOperation({
     summary: 'Crear cliente',
@@ -47,23 +46,40 @@ export class ClientsController {
     return this.clientsService.create(createClientDto);
   }
 
-  @Public()
   @Get()
   @ApiOperation({
     summary: 'Listar clientes',
     description:
-      'Obtiene todos los clientes con sus relaciones: usuario, vendedor y pedidos.',
+      'Obtiene todos los clientes con sus relaciones: usuario, vendedor y pedidos. Soporta paginación.',
   })
   @ApiResponse({
     status: 200,
     description: 'Lista de clientes obtenida correctamente.',
-    type: [Client],
+    schema: {
+      example: {
+        clients: [
+          {
+            id: 'uuid',
+            user: { name: 'Cliente' },
+            seller: { name: 'Vendedor' },
+          },
+        ],
+        total: 100,
+        page: 1,
+        limit: 10,
+        totalPages: 10,
+      },
+    },
   })
-  findAll() {
-    return this.clientsService.findAll();
+  findAll(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+  ) {
+    const pageNum = parseInt(page, 10) || 1;
+    const limitNum = parseInt(limit, 10) || 10;
+    return this.clientsService.findAll(pageNum, limitNum);
   }
 
-  @Public()
   @Get(':id')
   @ApiOperation({
     summary: 'Obtener cliente por ID',
@@ -87,7 +103,6 @@ export class ClientsController {
     return this.clientsService.findOne(id);
   }
 
-  @Public()
   @Patch(':id')
   @ApiOperation({
     summary: 'Actualizar cliente',
@@ -113,7 +128,6 @@ export class ClientsController {
     return this.clientsService.update(id, updateClientDto);
   }
 
-  @Public()
   @Delete(':id')
   @ApiOperation({
     summary: 'Eliminar cliente',

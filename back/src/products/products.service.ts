@@ -40,13 +40,20 @@ export class ProductsService {
     return await this.productRepository.save(product);
   }
 
-  async findAll(): Promise<Product[]> {
-    return await this.productRepository.find({
+  async findAll(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ products: Product[]; total: number }> {
+    const [products, total] = await this.productRepository.findAndCount({
       relations: ['winery', 'stocks'],
       order: {
         createdAt: 'DESC',
       },
+      skip: (page - 1) * limit,
+      take: limit,
     });
+
+    return { products, total };
   }
 
   async findOne(id: string): Promise<Product> {
@@ -62,7 +69,10 @@ export class ProductsService {
     return product;
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+  ): Promise<Product> {
     const product = await this.findOne(id);
 
     if (updateProductDto.wineryId) {

@@ -9,6 +9,7 @@ import SellerBottomNav from "./components/SallerBottomNav";
 export default function SellerDashboard() {
   return (
     <div className="bg-background text-on-surface min-h-screen pb-20">
+      <SellerHeader />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <section className="lg:col-span-8">
@@ -32,6 +33,8 @@ export default function SellerDashboard() {
           </section>
         </div>
       </main>
+
+      <SellerBottomNav />
     </div>
   );
 }
