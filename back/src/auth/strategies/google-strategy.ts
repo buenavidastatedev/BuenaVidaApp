@@ -1,33 +1,57 @@
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { Strategy, Profile } from 'passport-google-oauth20';
+import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
 
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
-  constructor(private config: ConfigService) {
+  constructor(private readonly config: ConfigService) {
+    const clientID = config.get<string>('GOOGLE_CLIENT_ID');
+    const clientSecret = config.get<string>('GOOGLE_CLIENT_SECRET');
+    const callbackURL = config.get<string>('GOOGLE_CALLBACK_URL');
+
+    console.log('GOOGLE_CLIENT_ID:', clientID);
+    console.log('GOOGLE_CALLBACK_URL:', callbackURL);
+
+    if (!clientID) {
+      throw new Error('GOOGLE_CLIENT_ID no está definido');
+    }
+
+    if (!clientSecret) {
+      throw new Error('GOOGLE_CLIENT_SECRET no está definido');
+    }
+
+    if (!callbackURL) {
+      throw new Error('GOOGLE_CALLBACK_URL no está definido');
+    }
+
     super({
-      clientID: config.get<string>('GOOGLE_CLIENT_ID')!,
-      clientSecret: config.get<string>('GOOGLE_CLIENT_SECRET')!,
-      callbackURL: config.get<string>('GOOGLE_CALLBACK_URL')!,
+      clientID,
+      clientSecret,
+      callbackURL,
       scope: ['email', 'profile'],
     });
   }
 
-  // Google llama a este método automáticamente después de que el usuario
-  // aprueba el acceso — acá recibís el perfil del usuario
-  validate(_accessToken: string, _refreshToken: string, profile: Profile) {
-    const { id, emails, name, photos } = profile;
+  validate(
+    _accessToken: string,
+    _refreshToken: string,
+    profile: Profile,
+    done: VerifyCallback,
+  ) {
+    try {
+      const { id, emails, name, photos } = profile;
 
-    // Armamos un objeto con los datos que nos interesan
-    // Este objeto queda disponible en request.user
-    return {
-      providerId: id, // el "sub" de Google
-      email: emails?.[0]?.value,
-      firstName: name?.givenName,
-      lastName: name?.familyName,
-      avatarUrl: photos?.[0]?.value,
-      provider: 'google',
-    };
+      const user = {
+        providerId: id,
+        email: emails?.[0]?.value,
+        firstname: name?.givenName,
+        avatarUrl: photos?.[0]?.value,
+      };
+
+      done(null, user);
+    } catch (error) {
+      done(error, false);
+    }
   }
 }

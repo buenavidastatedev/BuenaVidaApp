@@ -5,7 +5,7 @@ const ACCESS_TOKEN_KEY = "accessToken";
 const REFRESH_TOKEN_KEY = "refreshToken";
 
 /* =========================
-   STORAGE HELPERS
+   STORAGE
 ========================= */
 
 function getStorageWithToken() {
@@ -82,36 +82,80 @@ export async function logoutRequest() {
 
   if (!token) {
     clearTokens();
-    throw new Error("No hay sesión activa");
+    return;
   }
 
-  const res = await fetch(`${API_URL}/auth/logout`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  try {
+    await fetch(`${API_URL}/auth/logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+  } finally {
+    clearTokens();
+  }
+}
 
-  if (!res.ok) {
-    const result = await res.json().catch(() => null);
+/* =========================
+   REFRESH TOKEN
+========================= */
 
-    throw new Error(result?.message || "Error al cerrar sesión");
+async function refreshAccessToken() {
+  const refreshToken =
+    localStorage.getItem(REFRESH_TOKEN_KEY) ||
+    sessionStorage.getItem(REFRESH_TOKEN_KEY);
+
+  if (!refreshToken) {
+    clearTokens();
+    return null;
   }
 
-  clearTokens();
+  try {
+    const res = await fetch(`${API_URL}/auth/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        refreshToken,
+      }),
+    });
 
-  return res.json();
+    if (!res.ok) {
+      clearTokens();
+      return null;
+    }
+
+    const tokens = await res.json();
+
+    const storage = getStorageWithToken() || localStorage;
+
+    storage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+
+    storage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+
+    return tokens.accessToken;
+  } catch (error) {
+    console.error(error);
+    clearTokens();
+    return null;
+  }
 }
 
 /* =========================
    BASE FETCH
 ========================= */
 
-async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const token = getToken();
+async function fetchWithAuth<T>(
+  url: string,
+  options: RequestInit = {},
+): Promise<T> {
+  let token = getToken();
 
-  // 🚨 no token
   if (!token) {
     clearTokens();
 
@@ -122,7 +166,6 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     throw new Error("No hay sesión activa");
   }
 
-  // 🚀 request principal
   let res = await fetch(url, {
     ...options,
     headers: {
@@ -133,72 +176,48 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     cache: "no-store",
   });
 
-  // 🔁 refresh automático
-  if (res.status === 401 && typeof window !== "undefined") {
-    const refreshToken =
-      localStorage.getItem(REFRESH_TOKEN_KEY) ||
-      sessionStorage.getItem(REFRESH_TOKEN_KEY);
+  // 🔁 token expirado
+  if (res.status === 401) {
+    const newAccessToken = await refreshAccessToken();
 
-    // 🚨 no refresh token
-    if (!refreshToken) {
-      clearTokens();
-
-      window.location.href = "/login";
-
-      throw new Error("Refresh token inexistente");
-    }
-
-    // 🔁 refresh request
-    const refreshRes = await fetch(`${API_URL}/auth/refresh`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        refreshToken,
-      }),
-    });
-
-    // 🚨 refresh inválido
-    if (!refreshRes.ok) {
-      clearTokens();
-
-      window.location.href = "/login";
+    if (!newAccessToken) {
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
+      }
 
       throw new Error("Sesión expirada");
     }
 
-    const newTokens = await refreshRes.json();
+    token = newAccessToken;
 
-    // 💾 guardar nuevos tokens
-    const storage = getStorageWithToken() || localStorage;
-
-    storage.setItem(ACCESS_TOKEN_KEY, newTokens.accessToken);
-
-    storage.setItem(REFRESH_TOKEN_KEY, newTokens.refreshToken);
-
-    // 🔁 retry original request
+    // 🔁 retry
     res = await fetch(url, {
       ...options,
       headers: {
         "Content-Type": "application/json",
         ...(options.headers || {}),
-        Authorization: `Bearer ${newTokens.accessToken}`,
+        Authorization: `Bearer ${token}`,
       },
       cache: "no-store",
     });
   }
 
-  // ⚠️ respuestas vacías
+  // 🚨 evitar crash por body vacío
   const text = await res.text();
 
-  const result = text ? JSON.parse(text) : null;
+  let result = null;
+
+  try {
+    result = text ? JSON.parse(text) : null;
+  } catch {
+    result = text;
+  }
 
   if (!res.ok) {
     throw new Error(result?.message || "Error en request");
   }
 
-  return result;
+  return result as T;
 }
 
 /* =========================
@@ -224,10 +243,10 @@ export type SellerPerformance = {
 ========================= */
 
 export const getDashboardSummary = () =>
-  fetchWithAuth(`${API_URL}/dashboard/summary`);
+  fetchWithAuth<DashboardSummary>(`${API_URL}/dashboard/summary`);
 
-export const getSellerPerformance = (): Promise<SellerPerformance[]> =>
-  fetchWithAuth(`${API_URL}/dashboard/sellers`);
+export const getSellerPerformance = () =>
+  fetchWithAuth<SellerPerformance[]>(`${API_URL}/dashboard/sellers`);
 
 export const getSettlements = () =>
   fetchWithAuth(`${API_URL}/dashboard/settlements`);

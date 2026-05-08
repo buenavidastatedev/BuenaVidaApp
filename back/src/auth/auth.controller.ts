@@ -119,20 +119,19 @@ export class AuthController {
   @Public()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
-  @ApiOperation({
-    summary: 'Callback de Google OAuth',
-    description:
-      'Google redirige a esta ruta luego del login. El backend crea o vincula el usuario y redirige al frontend con los tokens.',
-  })
-  @ApiResponse({
-    status: 302,
-    description:
-      'Redirección al frontend con accessToken y refreshToken en query params.',
-  })
   async googleCallback(@Req() req: Request, @Res() res: Response) {
-    const tokens = await this.authService.googleLogin(req.user as OAuthProfile);
+    const role = (req.query.role as string) || 'client';
+
+    const tokens = await this.authService.googleLogin(
+      req.user as OAuthProfile,
+      role,
+    );
 
     const frontendUrl = this.config.get<string>('FRONTEND_URL');
+
+    if (!frontendUrl) {
+      throw new Error('FRONTEND_URL no definida');
+    }
 
     return res.redirect(
       `${frontendUrl}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,

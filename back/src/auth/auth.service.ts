@@ -118,7 +118,7 @@ export class AuthService {
 
   // ─── Google OAuth ──────────────────────────────────────
 
-  async googleLogin(profile: OAuthProfile) {
+  async googleLogin(profile: OAuthProfile, role: string) {
     let user = await this.userRepo.findOne({
       where: { providerId: profile.providerId, provider: OAuthProvider.GOOGLE },
     });
@@ -141,6 +141,7 @@ export class AuthService {
         avatarUrl: profile.avatarUrl,
         providerId: profile.providerId,
         provider: OAuthProvider.GOOGLE,
+        role: role as any,
       });
       await this.userRepo.save(user);
     }
