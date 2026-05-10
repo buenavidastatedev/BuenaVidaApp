@@ -8,8 +8,13 @@ import { Order } from '../orders/entities/order.entity';
 import { Product } from '../products/entities/product.entity';
 import { Stock } from '../stock/entities/stock.entity';
 
+import { SettlementConfigModule } from '../settlement-config/settlement-config.module';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([Order, Product, Stock])],
+  imports: [
+    TypeOrmModule.forFeature([Order, Product, Stock]),
+    SettlementConfigModule,
+  ],
   controllers: [DashboardController],
   providers: [DashboardService],
 })
